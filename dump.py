@@ -4,4 +4,4 @@ from __future__ import unicode_literals
 
 from linkmanager.db import DataBase
 
-print(DataBase().dump())
+DataBase().dump()
