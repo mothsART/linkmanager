@@ -8,7 +8,6 @@ import readline
 import json
 
 import arrow
-from clint.textui import puts, indent
 from clint.textui.colored import green, red, white
 
 from .settings import (TEST, INDENT)
@@ -114,87 +113,87 @@ def addlinks(links=None):
     fixture = {}
     db = DataBase(test=test())
     for l in links:
-        properties = ([], '', '')
+        properties = ([], '', '', str(arrow.now()), None)
         if db.link_exist(l):
             update = input(
                 ' ' * INDENT
                 + red(
                     _(
                         'the link "%s" already exist: '
-                        'do you want to update [Y/n] ? ' + ' : '
-                    ) % l,
+                        'do you want to update [Y/n] ?'
+                    ) % l + ' : ',
                     bold=True
                 )
             )
             if update not in ['Y', '']:
-                break
+                continue
             properties = db.get_link_properties(l)
+            properties = properties + (str(arrow.now()),)
         tags, priority, description = properties_input(l, *properties)
         fixture[l] = {
             "tags": tags,
             "priority": priority,
             "description": description,
-            "init date": str(arrow.now()),
-            "update date": None
+            "init date": properties[3],
+            "update date": properties[4]
         }
     db.add_link(json.dumps(fixture))
     return True
 
 
-def updatelink(links=None):
+def updatelinks(links=None):
     """ CMD: Update a link on Database """
     links = _links_validator(links)
     fixture = {}
     db = DataBase(test=test())
     for l in links:
-        properties = ([], '', '')
+        properties = ([], '', '', str(arrow.now()), None)
         if not db.link_exist(l):
             add = input(
                 ' ' * INDENT
                 + red(
                     _(
                         'the link "%s" does not exist: '
-                        'do you want to create [Y/n] ? ' + ' : '
-                    ) % l,
+                        'do you want to create [Y/n] ?'
+                    ) % l + ' : ',
                     bold=True
                 )
             )
             if add not in ['Y', '']:
-                break
+                continue
         else:
             properties = db.get_link_properties(l)
+            properties = properties + (str(arrow.now()),)
         tags, priority, description = properties_input(l, *properties)
         fixture[l] = {
             "tags": tags,
             "priority": priority,
             "description": description,
-            #"init date": None,
-            "update date": str(arrow.now())
+            "init date": properties[3],
+            "update date": properties[4]
         }
     db.add_link(json.dumps(fixture))
     return True
 
-    # arrow.now()
-    # arrow.get('...')
 
-
-def removelink(links=None):
+def removelinks(links=None):
     """ CMD: Remove a link on Database """
     links = _links_validator(links)
     db = DataBase(test=test())
     is_removed = False
     for l in links:
+        if not db.link_exist(l):
+            print(white(
+                _('the link "%s" does not exist.') % l,
+                bold=True, bg_color='red'
+            ))
+            continue
         if db.delete_link(l):
             print(white(
                 _('the link "%s" has been deleted.') % l,
                 bold=True, bg_color='green'
             ))
             is_removed = True
-        else:
-            print(white(
-                _('the link: "%s" does not exist.') % l,
-                bold=True, bg_color='red'
-            ))
     return is_removed
 
 
@@ -228,9 +227,10 @@ def load(json_files=None):
             bold=True, bg_color='red'
         ))
         return False
+    db = DataBase(test=test())
     for json_file in json_files:
         with open(json_file) as f:
-            DataBase(test=test()).load(f.read())
+            db.load(f.read())
     return True
 
 
@@ -240,9 +240,10 @@ def dump():
     return True
 
 
-def searchlink(tags=None):
+def searchlinks(tags=[]):
     """ CMD: Search links on Database filtering by tags """
-    links = DataBase(test=test()).sorted_links(*tags)
+    d = DataBase(test=test())
+    links = d.sorted_links(*tags)
     c_links = len(links)
     if c_links == 0:
         print(white(
@@ -253,17 +254,15 @@ def searchlink(tags=None):
     if len(tags) == 0:
         print(
             white(
-                '%s liens au total: ' % c_links,
+                _('%s links totally founded') % c_links + ' : ',
                 bold=True, bg_color='green'
             )
         )
     else:
-        s_tags = '%s , '.join(tags)
-        print(white(_(
-            '%s liens correspondants aux tags : %s ') % (c_links, s_tags),
+        print(white(
+            _('%s links founded') % c_links + ' : ',
             bold=True, bg_color='green'
         ))
-    with indent(INDENT):
-        for l in links:
-            puts(white(links[l]))
+    for l in links:
+        print(' ' * INDENT + white(l))
     return True

@@ -5,19 +5,19 @@ import argparse
 
 from linkmanager.translation import gettext as _
 from linkmanager import (
-    addlinks, updatelink, removelink,
+    addlinks, updatelinks, removelinks,
     flush, load, dump,
-    searchlink
+    searchlinks
 )
 
 choices = {
-    'add': ['a', 'add', _('add a link'), addlinks],
-    'udpate': ['u', 'update', _('update a link'), updatelink],
-    'remove': ['r', 'remove', _('remove a link'), removelink],
+    'add': ['a', 'add', _('add links'), addlinks],
+    'udpate': ['u', 'update', _('update links'), updatelinks],
+    'remove': ['r', 'remove', _('remove links'), removelinks],
     'flush': ['f', 'flush', _('flush the entire database'), flush],
     'load': ['l', 'load', _('load a json database file'), load],
     'dump': ['d', 'dump', _('dump all database to a json file'), dump],
-    'search': ['s', 'search', _('search a link on database'), searchlink]
+    'search': ['s', 'search', _('search links on database'), searchlinks]
 }
 
 
@@ -63,14 +63,14 @@ class Choices(object):
 parser = argparse.ArgumentParser(
     formatter_class=argparse.RawTextHelpFormatter,
     epilog=Choices.descriptions(),
-    description='Manage your Links and and never lose them...'
+    description=_('Manage your Links and and never lose them...')
 )
 parser.add_argument(
     'choice',
     choices=Choices.cmd()
 )
 parser.add_argument(
-    '-f', '--forced', help='force command to be quiet and without input',
+    '-f', '--forced', help=_('force command to be quiet and without input'),
     default=False, action='store_const', const='forced'
 )
 parser.add_argument(
@@ -89,4 +89,4 @@ try:
     else:
         Choices.call(args['choice'])(args['value'])
 except KeyboardInterrupt:
-    print('\nCtrl + C interruption')
+    print(_('\nCtrl + C interruption'))

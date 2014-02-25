@@ -66,7 +66,8 @@ class RedisDb(object):
         p = self._db.hgetall(l_uuid)
         priority = p[b"priority"].decode()
         description = p[b"description"].decode()
-        return tags, priority, description
+        init_date = p[b"init date"].decode()
+        return tags, priority, description, init_date
 
     def tags(self, l_uuid=None):
         tags = []
@@ -77,7 +78,7 @@ class RedisDb(object):
                     continue
                 if self._db.sismember(key, l_uuid):
                     tags.append(key.decode())
-        return tags
+        return sorted(tags)
 
     def link_exist(self, link):
         if not self._db.hexists('links_uuid', link):
@@ -96,8 +97,6 @@ class RedisDb(object):
 
     def delete_link(self, link):
         " Delete a link on Database"
-        if not self._db.hexists('links_uuid', link):
-            return False
         l_uuid = self._db.hget('links_uuid', link)
 
         for tag in self.tags(l_uuid):
@@ -134,12 +133,22 @@ class RedisDb(object):
         for link in self.get_links(*tags):
             l = self._db.hgetall(link)
             if self.properties:
-                links[int(l[b'priority'])] = l
+                links[l[b'name'].decode()] = l
             else:
-                links[int(l[b'priority'])] = l[b'name'].decode()
-
+                links[l[b'name'].decode()] = int(l[b'priority'])
+        if self.properties:
+            # Sorted by :
+            # firstly "priority" (descending)
+            # second "name"
+            return OrderedDict(sorted(
+                links.items(),
+                key=lambda t: (- int(t[1][b'priority']), t[0]),
+            )[:settings.NB_RESULTS])
+        # Sorted by :
+        # firstly "priority" (descending)
+        # second "name"
         return OrderedDict(sorted(
-            links.items(), key=lambda t: t[0], reverse=True
+            links.items(), key=lambda t: (- int(t[1]), t[0])
         )[:settings.NB_RESULTS])
 
     def load(self, fixture):

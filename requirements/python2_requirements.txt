@@ -1,11 +1,2 @@
-argcomplete==0.6.9
-argparse==1.2.1
-arrow==0.4.2
-path.py==5.0
-py==1.4.19
-pytest==2.5.1
-python-dateutil==2.2
-redis==2.9.0
-requests==2.2.1
-six==1.5.2
+-r base.txt
 wsgiref==0.1.2
