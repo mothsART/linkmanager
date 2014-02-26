@@ -63,7 +63,7 @@ class Choices(object):
 parser = argparse.ArgumentParser(
     formatter_class=argparse.RawTextHelpFormatter,
     epilog=Choices.descriptions(),
-    description=_('Manage your Links and and never lose them...')
+    description=_('Manage your Links ...')
 )
 parser.add_argument(
     'choice',
@@ -89,4 +89,4 @@ try:
     else:
         Choices.call(args['choice'])(args['value'])
 except KeyboardInterrupt:
-    print(_('\nCtrl + C interruption'))
+    print('\n' + _('Ctrl + C interruption'))

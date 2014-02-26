@@ -87,16 +87,16 @@ def get_input(string):
 def test_cmd_flush(mock_stdout):
     assert flush() is True
     assert mock_stdout.getvalue() == ''.join([
-        "You're about to empty the entire Database.",
-        "Are you sure? [Y/n] ? \n",
-        "Database entirely flushed.\n"
+        _("You're about to empty the entire Database."),
+        _("Are you sure [Y/n] ?") + " \n",
+        _("Database entirely flushed.") + "\n"
     ])
     mock_stdout.truncate(0)
     mock_stdout.seek(0)
     assert flush() is False
     assert mock_stdout.getvalue() == ''.join([
-        "You're about to empty the entire Database.",
-        "Are you sure? [Y/n] ? \n"
+        _("You're about to empty the entire Database."),
+        _("Are you sure [Y/n] ?") + " \n"
     ])
 
 
@@ -424,7 +424,7 @@ def test_cmd_load_null(mock_stdout):
     mock_stdout.seek(0)
     # No file to load
     assert load() is False
-    assert mock_stdout.getvalue() == 'No file to load.\n'
+    assert mock_stdout.getvalue() == _('No file to load.') + '\n'
 
 
 first_fixture = """{
@@ -648,7 +648,7 @@ def test_cmd_searchlinks_allresult(mock_stdout):
 @patch('sys.stdout', new_callable=StringIO)
 def test_cmd_searchlinks_noresult(mock_stdout):
     assert searchlinks(['nothing']) is False
-    assert mock_stdout.getvalue() == 'No links founded. \n'
+    assert mock_stdout.getvalue() == _('No links founded') + '. \n'
 
 
 @patch('linkmanager.test', lambda: True)

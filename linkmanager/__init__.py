@@ -82,8 +82,8 @@ def properties_input(l, *properties):
             + red(
                 _(
                     'priority value not range '
-                    'between 1 and 10, retry' + ' : '
-                ),
+                    'between 1 and 10, retry'
+                ) + ' : ',
                 bold=True
             ),
             properties[1]
@@ -205,8 +205,8 @@ def flush(forced=['']):
         flush_choice = input(white(
             _(
                 "You're about to empty the entire Database."
-                "Are you sure? [Y/n] ? "
-            ),
+                "Are you sure [Y/n] ?"
+            ) + " ",
             bold=True, bg_color='red'
         ))
     if flush_choice == _('Y') or flush_choice == '':
@@ -247,7 +247,7 @@ def searchlinks(tags=[]):
     c_links = len(links)
     if c_links == 0:
         print(white(
-            _('No links founded. '),
+            _('No links founded') + '. ',
             bold=True, bg_color='red'
         ))
         return False
