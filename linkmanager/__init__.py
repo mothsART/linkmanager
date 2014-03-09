@@ -16,7 +16,7 @@ from .translation import gettext as _
 from . import validators
 from .db import DataBase
 
-__appname__ = 'LinkManager'
+__appname__ = 'linkmanager'
 __author__ = "Ferry Jérémie <jerem.ferry@gmail.com>"
 __licence__ = "BSD"
 __version__ = '0.1'

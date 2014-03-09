@@ -2,7 +2,7 @@
 
 import sys
 from setuptools import setup, find_packages
-from linkmanager import __version__
+from linkmanager import __appname__, __version__, __licence__, __author__
 import os
 
 base = os.path.dirname(__file__)
@@ -36,8 +36,12 @@ for line in required:
         url = url[:url.find('@')]
         required.append(url[url.rfind('/') + 1:])
 
+a = __author__
+author = a[:a.find("<") - 1]
+author_email = a[a.find("<") + 1:-1]
+
 setup(
-    name='linkmanager',
+    name=__appname__,
     version=__version__,
     description='Manage your link on terminal',
     long_description=readme + '\n' + changelog,  # + '\n' + todo
@@ -52,10 +56,10 @@ setup(
     ],
     keywords='manager link links URL prompt shell',
     platforms=["Linux"],
-    author='Jérémie Ferry',
-    author_email='jerem.ferry@gmail.com',
+    author=author,
+    author_email=author_email,
     url='https://github.com/mothsART/linkmanager',
-    license='BSD',
+    license=__licence__,
     packages=find_packages(exclude=['tests']),
     #include_package_data=True,
     #zip_safe=True,
