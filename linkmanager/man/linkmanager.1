@@ -1,0 +1,50 @@
+.\" -*- coding: utf-8 -*-
+'\" t
+.\"     Title: LinkManager
+.\"    Author: Jérémie Ferry <>
+.\"    Date: 28/04/2014
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH LINKMANAGER 1 "28/04/2014" "linkmanager 0.1"
+
+.SH NAME
+linkmanager \- Manage your links on terminal
+
+.SH SYNOPSIS
+
+.B linkmanager
+[\-\-help] [\-h]
+.br
+.B linkmanager [\fBoptions...\fP]
+
+.br
+
+.SH DESCRIPTION
+Replace bookmark tool present on browser because :
+.br
+    * is often heavy
+.br
+    * dependent of the browser in question
+.br
+    * has a lot of frills
+.br
+    * DataBase usage depend on browser
+.br
+    * find a local link should not require several hundred MB of Ram and eat your CPU
+.br
+    * one software for one thing (Unix Philosophy)
+.br
+    * KISS for import/export
+.br
+    * many other good reasons
+
+.SH EXAMPLES
+.TP
+linkmanager s
+List all links on Database
+
+.TP
+linkmanager s linux bsd
+List all links on Database contained "linux" and "bsd" label

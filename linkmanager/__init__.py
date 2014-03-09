@@ -1,3 +1,4 @@
+# encoding=utf8
 # python2 "raw_input()" was renamed to input() on python3
 try:
     input = raw_input
@@ -16,8 +17,8 @@ from . import validators
 from .db import DataBase
 
 __appname__ = 'LinkManager'
-__author__ = "Ferry Jérémie <ferryjeremie@free.fr>"
-__licence__ = "LGPL"
+__author__ = "Ferry Jérémie <jerem.ferry@gmail.com>"
+__licence__ = "BSD"
 __version__ = '0.1'
 VERSION = tuple(map(int, __version__.split('.')))
 

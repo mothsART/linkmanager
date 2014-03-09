@@ -14,7 +14,7 @@ msgstr ""
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; ccharset=UTF-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: get_interface.py:33 linkmanager/__init__.py:215
@@ -52,7 +52,7 @@ msgstr "chercher un lien dans la base de donnée"
 
 #: linkm.py:46
 msgid "Choices supports the following: (short cmd/cmd)"
-msgstr "Prend en charge : (commande abrégé / commande"
+msgstr "Prend en charge : (commande abrégé / commande)"
 
 #: linkm.py:66
 msgid "Manage your Links ..."
@@ -81,7 +81,7 @@ msgstr "propriétés %s"
 #: linkmanager/tests/interface.py:236 linkmanager/tests/interface.py:255
 #: linkmanager/tests/interface.py:271
 msgid "tags (separate with \",\")"
-msgstr "tags (separé avec des \",\")"
+msgstr "étiquettes (separé avec des \",\")"
 
 #: linkmanager/__init__.py:66 linkmanager/tests/interface.py:119
 #: linkmanager/tests/interface.py:125 linkmanager/tests/interface.py:131
