@@ -8,7 +8,7 @@ import os
 base = os.path.dirname(__file__)
 
 readme = open(os.path.join(base, 'README.rst')).readlines()
-readme = "".join(readme[19:])
+readme = "".join(readme[22:])
 changelog = open(os.path.join(base, 'HISTORY.rst')).read()
 #todo = open(os.path.join(base, 'TODO.rst')).read()
 
@@ -61,8 +61,6 @@ setup(
     url='https://github.com/mothsART/linkmanager',
     license=__licence__,
     packages=find_packages(exclude=['tests']),
-    #include_package_data=True,
-    #zip_safe=True,
     scripts=['linkm.py'],
     dependency_links=dlinks,
     install_requires=required
