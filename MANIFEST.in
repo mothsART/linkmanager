@@ -1,1 +1,3 @@
+include README.rst HISTORY.rst
+graft requirements
 graft linkmanager/man

@@ -3,11 +3,10 @@ from io import StringIO
 from unittest.mock import (patch, mock_open, MagicMock)
 
 from linkmanager.settings import INDENT
-from linkmanager import (
-    flush, searchlinks,
-    addlinks, updatelinks, removelinks,
-    load, dump
-)
+from linkmanager import interface
+tty_i = interface()
+tty_i.test = True
+
 from linkmanager.translation import gettext as _
 
 
@@ -81,11 +80,10 @@ def get_input(string):
     return next(addlink)
 
 
-@patch('linkmanager.test', lambda: True)
 @patch('builtins.input', get_input)
 @patch('sys.stdout', new_callable=StringIO)
 def test_cmd_flush(mock_stdout):
-    assert flush() is True
+    assert tty_i.flush() is True
     assert mock_stdout.getvalue() == ''.join([
         _("You're about to empty the entire Database."),
         _("Are you sure [Y/n] ?") + " \n",
@@ -93,23 +91,22 @@ def test_cmd_flush(mock_stdout):
     ])
     mock_stdout.truncate(0)
     mock_stdout.seek(0)
-    assert flush() is False
+    assert tty_i.flush() is False
     assert mock_stdout.getvalue() == ''.join([
         _("You're about to empty the entire Database."),
         _("Are you sure [Y/n] ?") + " \n"
     ])
 
 
-@patch('linkmanager.test', lambda: True)
 @patch('builtins.input', get_input)
 @patch('sys.stdout', new_callable=StringIO)
 @patch('arrow.now', lambda: "2014-02-10T19:59:34.612714+01:00")
 def test_cmd_addlinks(mock_stdout):
-    flush(forced=['forced'])
+    tty_i.flush(forced=['forced'])
     assert mock_stdout.getvalue() == _('Database entirely flushed.') + '\n'
 
     mock_stdout.seek(0)
-    assert addlinks() is True
+    assert tty_i.addlinks() is True
 
     assert mock_stdout.getvalue() == ''.join([
         _('Give one or several links (separate with space)'), ' : \n',
@@ -138,12 +135,11 @@ def test_cmd_addlinks(mock_stdout):
     ])
 
 
-@patch('linkmanager.test', lambda: True)
 @patch('builtins.input', get_input)
 @patch('sys.stdout', new_callable=StringIO)
 @patch('arrow.now', lambda: "2014-02-14T10:22:34.612714+01:00")
 def test_cmd_addlinks_with_update(mock_stdout):
-    assert addlinks() is True
+    assert tty_i.addlinks() is True
 
     assert mock_stdout.getvalue() == ''.join([
         _('Give one or several links (separate with space)'), ' : \n',
@@ -215,19 +211,17 @@ dump_afteradd = """{
 """
 
 
-@patch('linkmanager.test', lambda: True)
 @patch('sys.stdout', new_callable=StringIO)
 def test_cmd_addlinks_dump(mock_stdout):
-    assert dump() is True
+    assert tty_i.dump() is True
     assert json.loads(mock_stdout.getvalue()) == json.loads(dump_afteradd)
 
 
-@patch('linkmanager.test', lambda: True)
 @patch('builtins.input', get_input)
 @patch('sys.stdout', new_callable=StringIO)
 @patch('arrow.now', lambda: "2014-02-15T12:20:34.612714+01:00")
 def test_cmd_updatelinks(mock_stdout):
-    assert updatelinks() is True
+    assert tty_i.updatelinks() is True
 
     assert mock_stdout.getvalue() == ''.join([
         _('Give one or several links (separate with space)'), ' : \n',
@@ -240,12 +234,11 @@ def test_cmd_updatelinks(mock_stdout):
     ])
 
 
-@patch('linkmanager.test', lambda: True)
 @patch('builtins.input', get_input)
 @patch('sys.stdout', new_callable=StringIO)
 @patch('arrow.now', lambda: "2014-02-10T19:59:34.612714+01:00")
 def test_cmd_updatelinks_with_add(mock_stdout):
-    assert updatelinks() is True
+    assert tty_i.updatelinks() is True
     #cp.cpvar(mock_stdout.getvalue())
 
     assert mock_stdout.getvalue() == ''.join([
@@ -332,23 +325,21 @@ dump_afterupdate = """{
 """
 
 
-@patch('linkmanager.test', lambda: True)
 @patch('sys.stdout', new_callable=StringIO)
 def test_cmd_updatelinks_dump(mock_stdout):
 # def test_cmd_updatelinks_dump():
     # with open('tt.json', 'w') as f:
     #     f.write(cp.result)
     # assert False is True
-    assert dump() is True
+    assert tty_i.dump() is True
     assert json.loads(mock_stdout.getvalue()) == json.loads(dump_afterupdate)
 
 
-@patch('linkmanager.test', lambda: True)
 @patch('builtins.input', get_input)
 @patch('sys.stdout', new_callable=StringIO)
 def test_cmd_removelinks(mock_stdout):
-    assert removelinks() is False
-    assert removelinks([
+    assert tty_i.removelinks() is False
+    assert tty_i.removelinks([
         "http://link5.com",
         "http://link6.com",
         "http://link7.com"
@@ -407,23 +398,21 @@ dump_afterremove = """{
 """
 
 
-@patch('linkmanager.test', lambda: True)
 @patch('sys.stdout', new_callable=StringIO)
 def test_cmd_removelinks_dump(mock_stdout):
-    assert dump() is True
+    assert tty_i.dump() is True
     assert json.loads(mock_stdout.getvalue()) == json.loads(dump_afterremove)
 
 
-@patch('linkmanager.test', lambda: True)
 @patch('sys.stdout', new_callable=StringIO)
 def test_cmd_load_null(mock_stdout):
-    flush(forced=['forced'])
+    tty_i.flush(forced=['forced'])
     assert mock_stdout.getvalue() == _('Database entirely flushed.') + '\n'
 
     mock_stdout.truncate(0)
     mock_stdout.seek(0)
     # No file to load
-    assert load() is False
+    assert tty_i.load() is False
     assert mock_stdout.getvalue() == _('No file to load.') + '\n'
 
 
@@ -465,18 +454,16 @@ first_fixture = """{
 """
 
 
-@patch('linkmanager.test', lambda: True)
 @patch('builtins.open', mock_open(read_data=first_fixture))
 def test_cmd_one_load():
-    flush(forced=['forced'])
+    tty_i.flush(forced=['forced'])
     # One file
-    assert load(['file.json']) is True
+    assert tty_i.load(['file.json']) is True
 
 
-@patch('linkmanager.test', lambda: True)
 @patch('sys.stdout', new_callable=StringIO)
 def test_cmd_dump_after_one_load(mock_stdout):
-    dump()
+    tty_i.dump()
     assert json.loads(mock_stdout.getvalue()) == json.loads(first_fixture)
 
 
@@ -609,32 +596,29 @@ def multi_mock_open(mock=None, read_data=''):
     return mock
 
 
-@patch('linkmanager.test', lambda: True)
 @patch('builtins.open', multi_mock_open())
 def test_cmd_multi_load():
-    flush(forced=['forced'])
+    tty_i.flush(forced=['forced'])
     # Several files
-    assert load(json_files=[
+    assert tty_i.load(json_files=[
         'file_1.json', 'file_2.json', 'file_3.json'
     ]) is True
 
 
-@patch('linkmanager.test', lambda: True)
 @patch('sys.stdout', new_callable=StringIO)
 def test_cmd_dump_after_multi_load(mock_stdout):
 # def test_cmd_dump_after_multi_load():
     # with open('tt.json', 'w') as f:
     #     f.write(cp.result)
     # assert False is True
-    assert dump() is True
+    assert tty_i.dump() is True
     assert json.loads(mock_stdout.getvalue()) == json.loads(fifth_fixture)
 
 
-@patch('linkmanager.test', lambda: True)
 @patch('sys.stdout', new_callable=StringIO)
 def test_cmd_searchlinks_allresult(mock_stdout):
 # def test_cmd_searchlinks_allresult():
-    assert searchlinks() is True
+    assert tty_i.searchlinks() is True
     assert mock_stdout.getvalue() == ''.join([
         _('%s links totally founded') % '4', ' : \n',
         ' ' * INDENT, 'http://ubuntu.com\n',
@@ -644,17 +628,15 @@ def test_cmd_searchlinks_allresult(mock_stdout):
     ])
 
 
-@patch('linkmanager.test', lambda: True)
 @patch('sys.stdout', new_callable=StringIO)
 def test_cmd_searchlinks_noresult(mock_stdout):
-    assert searchlinks(['nothing']) is False
+    assert tty_i.searchlinks(['nothing']) is False
     assert mock_stdout.getvalue() == _('No links founded') + '. \n'
 
 
-@patch('linkmanager.test', lambda: True)
 @patch('sys.stdout', new_callable=StringIO)
 def test_cmd_searchlinks(mock_stdout):
-    assert searchlinks(['bsd']) is True
+    assert tty_i.searchlinks(['bsd']) is True
     assert mock_stdout.getvalue() == ''.join([
         _('%s links founded') % '2', ' : \n',
         ' ' * INDENT, 'http://linuxfr.org\n',

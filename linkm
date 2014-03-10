@@ -4,20 +4,32 @@ import argcomplete
 import argparse
 
 from linkmanager.translation import gettext as _
-from linkmanager import (
-    addlinks, updatelinks, removelinks,
-    flush, load, dump,
-    searchlinks
-)
+from linkmanager import interface
+TTYInterface = interface()
+
+__appname__ = 'linkmanager'
+__author__ = "Ferry Jérémie <jerem.ferry@gmail.com>"
+__licence__ = "BSD"
+__version__ = '0.1.4'
+VERSION = tuple(map(int, __version__.split('.')))
 
 choices = {
-    'add': ['a', 'add', _('add links'), addlinks],
-    'udpate': ['u', 'update', _('update links'), updatelinks],
-    'remove': ['r', 'remove', _('remove links'), removelinks],
-    'flush': ['f', 'flush', _('flush the entire database'), flush],
-    'load': ['l', 'load', _('load a json database file'), load],
-    'dump': ['d', 'dump', _('dump all database to a json file'), dump],
-    'search': ['s', 'search', _('search links on database'), searchlinks]
+    'add': ['a', 'add', _('add links'), TTYInterface.addlinks],
+    'udpate': ['u', 'update', _('update links'), TTYInterface.updatelinks],
+    'remove': ['r', 'remove', _('remove links'), TTYInterface.removelinks],
+    'flush': [
+        'f', 'flush',
+        _('flush the entire database'), TTYInterface.flush
+    ],
+    'load': ['l', 'load', _('load a json database file'), TTYInterface.load],
+    'dump': [
+        'd', 'dump',
+        _('dump all database to a json file'), TTYInterface.dump
+    ],
+    'search': [
+        's', 'search',
+        _('search links on database'), TTYInterface.searchlinks
+    ]
 }
 
 
