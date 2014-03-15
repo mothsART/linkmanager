@@ -1,4 +1,5 @@
 
+
 ::
 
     _*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_
@@ -21,9 +22,9 @@
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 
-===========
+###########
 LinkManager
-===========
+###########
 
 **LinkManager** manage your link on terminal.
 
@@ -37,18 +38,28 @@ Replace bookmark tool present on browser because :
     * KISS for import/export
     * many other good reasons
 
-Requirements
-============
 
-Linkmanager depends on **redis** Database.
+Requirements
+------------
+
+Linkmanager depends on **redis** Database and GIT (personnal "clint" version).
 You must install it like this (on debian/ubuntu) :
-    $ sudo apt-get install redis-server
+
+.. code:: bash
+
+    $ sudo apt-get install redis-server git
 
 To enjoy completion, you should put that line in your ~/.bashrc (or ~/.zshrc) :
+
+.. code:: bash
+
     $ eval "$(register-python-argcomplete linkm)"
 
+
 Examples
-========
+--------
+
+.. code:: bash
 
     $ linkm add http://stackoverflow.com # add a link on Database
     $ linkm update http://stackoverflow.com # update properties on a existent link

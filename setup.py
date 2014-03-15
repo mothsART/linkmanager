@@ -1,7 +1,17 @@
 # encoding=utf8
 
 import sys
+
+try:
+    # python 3
+    from urllib import request
+except:
+    # python 2
+    import urllib as request
+
 from setuptools import setup, find_packages
+from setuptools.command import easy_install
+
 from linkmanager import (
     __appname__, __version__,
     __website__,
@@ -12,9 +22,17 @@ import os
 base = os.path.dirname(__file__)
 
 readme = open(os.path.join(base, 'README.rst')).readlines()
-readme = "".join(readme[22:])
+readme = "".join(readme[23:])
 changelog = open(os.path.join(base, 'HISTORY.rst')).read()
 #todo = open(os.path.join(base, 'TODO.rst')).read()
+
+clint_archive = request.urlopen(
+    "http://github.com/mothsART/clint/archive/master.zip"
+)
+output = open('clint.zip', 'wb')
+output.write(clint_archive.read())
+output.close()
+easy_install.main(['-U', 'clint.zip'])
 
 required = []
 dlinks = []
@@ -22,6 +40,8 @@ dlinks = []
 r_file = 'python2_requirements.txt'
 if sys.version_info[0] == 3:
     r_file = 'python3_requirements.txt'
+    if sys.version_info[1] >= 3:
+        r_file = 'base.txt'
 
 with open(
     os.path.join(base, 'requirements', r_file)
@@ -34,11 +54,7 @@ for line in required:
         with open(os.path.join(base, 'requirements', line[3:])) as f:
             required += f.read().splitlines()
     elif line.startswith('-e '):
-        url = line[3:]
         required.remove(line)
-        dlinks.append(url)
-        url = url[:url.find('@')]
-        required.append(url[url.rfind('/') + 1:])
 
 a = __author__
 author = a[:a.find("<") - 1]
@@ -48,7 +64,8 @@ setup(
     name=__appname__,
     version=__version__,
     description='Manage your link on terminal',
-    long_description=readme + '\n' + changelog,  # + '\n' + todo
+    long_description=readme + '\n' + changelog
+    + '\n\n.. _pip: http://www.pip-installer.org/',  # + '\n' + todo
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
@@ -67,7 +84,6 @@ setup(
     packages=find_packages(exclude=['tests']),
     scripts=['linkm'],
     data_files=[('share/man/man1/', ['linkmanager/man/linkmanager.1'])],
-    dependency_links=dlinks,
     install_requires=required,
     zip_safe=True
 )

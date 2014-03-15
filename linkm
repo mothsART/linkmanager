@@ -1,17 +1,25 @@
 #!/usr/bin/env python
+# encoding=utf8
 
+import subprocess
 import argcomplete
 import argparse
+
+# Test if Redis was launched and start it
+import redis
+rs = redis.Redis("localhost")
+try:
+    response = rs.client_list()
+except redis.ConnectionError:
+    subprocess.Popen(
+        ['/usr/bin/redis-server', '&'],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        shell=True
+    )
 
 from linkmanager.translation import gettext as _
 from linkmanager import interface
 TTYInterface = interface()
-
-__appname__ = 'linkmanager'
-__author__ = "Ferry Jérémie <jerem.ferry@gmail.com>"
-__licence__ = "BSD"
-__version__ = '0.1.4'
-VERSION = tuple(map(int, __version__.split('.')))
 
 choices = {
     'add': ['a', 'add', _('add links'), TTYInterface.addlinks],

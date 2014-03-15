@@ -1,9 +1,12 @@
 Release History
 ===============
 
-0.1.1 to 0.1.4 (2014-03-09)
----------------------------
+0.2 (2014-03-14)
+----------------
 
+ - test it with a Dockerfile (docker.io)
+ - setup.py with a dependance not include on pypi : a fork of clint (https://github.com/mothsART/clint)
+ - pre-launch redis server
  - change script name + README examples
  - add requirements
  - add HISTORY.rst on MANIFEST.in
