@@ -11,6 +11,7 @@ except:
 
 from setuptools import setup, find_packages
 from setuptools.command import easy_install
+from setuptools.command.test import test as TestCommand
 
 from linkmanager import (
     __appname__, __version__,
@@ -24,15 +25,19 @@ base = os.path.dirname(__file__)
 readme = open(os.path.join(base, 'README.rst')).readlines()
 readme = "".join(readme[23:])
 changelog = open(os.path.join(base, 'HISTORY.rst')).read()
-#todo = open(os.path.join(base, 'TODO.rst')).read()
 
-clint_archive = request.urlopen(
-    "http://github.com/mothsART/clint/archive/master.zip"
-)
-output = open('clint.zip', 'wb')
-output.write(clint_archive.read())
-output.close()
-easy_install.main(['-U', 'clint.zip'])
+# use this option (on end) when using on debian rules : createdeb
+print(sys.argv[-1])
+if sys.argv[-1] == 'createdeb':
+    sys.argv.pop()
+else:
+    clint_archive = request.urlopen(
+        "http://github.com/mothsART/clint/archive/master.zip"
+    )
+    output = open('clint.zip', 'wb')
+    output.write(clint_archive.read())
+    output.close()
+    easy_install.main(['-U', 'clint.zip'])
 
 required = []
 dlinks = []
@@ -60,6 +65,23 @@ a = __author__
 author = a[:a.find("<") - 1]
 author_email = a[a.find("<") + 1:-1]
 
+
+class PyTest(TestCommand):
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = [
+            '-vv', 'linkmanager/tests/tests.py',
+            '--cov=linkmanager',
+            '--cov-report', 'term-missing'
+        ]
+        self.test_suite = True
+
+    def run_tests(self):
+        #import here, cause outside the eggs aren't loaded
+        import pytest
+        errno = pytest.main(self.test_args)
+        sys.exit(errno)
+
 setup(
     name=__appname__,
     version=__version__,
@@ -83,7 +105,9 @@ setup(
     license=__licence__,
     packages=find_packages(exclude=['tests']),
     scripts=['linkm'],
-    data_files=[('share/man/man1/', ['linkmanager/man/linkmanager.1'])],
+    data_files=[('share/man/man1/', ['docs/linkmanager.1'])],
     install_requires=required,
+    tests_require=['pytest'],
+    cmdclass={'test': PyTest},
     zip_safe=True
 )
