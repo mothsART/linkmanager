@@ -21,6 +21,8 @@ Depends: ${python3:Depends},
  python3-requests,
  python3-argcomplete,
  python3-redis,
+ python3-arrow,
+ python-clint,
  ${shlibs:Depends},
  ${misc:Depends}
 Homepage: https://github.com/mothsART/linkmanager
