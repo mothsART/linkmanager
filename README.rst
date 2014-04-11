@@ -49,7 +49,9 @@ You must install it like this (on debian/ubuntu) :
 
     $ sudo apt-get install redis-server git
 
-To enjoy completion, you should put that line in your ~/.bashrc (or ~/.zshrc) :
+To enjoy "completion", you normaly should do nothing.
+A "sudo pip install" should add it automatically.
+Otherwise, just put that line in your ~/.bashrc (or ~/.zshrc) :
 
 .. code:: bash
 

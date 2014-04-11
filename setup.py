@@ -105,9 +105,32 @@ setup(
     license=__licence__,
     packages=find_packages(exclude=['tests']),
     scripts=['linkm'],
-    data_files=[('share/man/man1/', ['docs/linkmanager.1'])],
+    data_files=[
+        ('/usr/share/man/man1/', ['docs/linkmanager.1.gz']),
+        ('/usr/bin/', ['linkmanager.zsh'])
+    ],
     install_requires=required,
     tests_require=['pytest'],
     cmdclass={'test': PyTest},
     zip_safe=True
 )
+if sys.argv != ['-c', 'egg_info', '--egg-base', 'pip-egg-info']:
+    exit(0)
+
+bashrc = '/etc/bash.bashrc'
+zshrc = '/etc/zsh/zshrc'
+bash_cmd = 'eval "$(register-python-argcomplete linkm)"\n'
+zsh_cmd = "source linkmanager.zsh\n"
+if os.path.isfile(bashrc):
+    with open(bashrc, 'r+') as f:
+        readlines = f.readlines()
+        if bash_cmd not in readlines:
+            f.write(bash_cmd)
+
+if os.path.isfile(zshrc):
+    with open(zshrc, 'r+') as f:
+        readlines = f.readlines()
+        if zsh_cmd not in readlines:
+            f.write(zsh_cmd)
+
+#os.popen('$SHELL')

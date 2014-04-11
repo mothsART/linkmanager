@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+# PYTHON_ARGCOMPLETE_OK
 # encoding=utf8
 
+import sys
 import subprocess
 import argcomplete
 import argparse
@@ -18,7 +20,7 @@ except redis.ConnectionError:
     )
 
 from linkmanager.translation import gettext as _
-from linkmanager import interface
+from linkmanager import interface, __version__, __appname__
 TTYInterface = interface()
 
 choices = {
@@ -92,6 +94,12 @@ parser.add_argument(
 parser.add_argument(
     '-f', '--forced', help=_('force command to be quiet and without input'),
     default=False, action='store_const', const='forced'
+)
+parser.add_argument(
+    '-v', '--version', help=_('show linkmanager version'),
+    action='version', version='%s %s (python %s)' % (
+        __appname__, __version__, sys.version
+    )
 )
 parser.add_argument(
     'value', nargs='*'
