@@ -27,7 +27,7 @@ def is_ignored(path, ignore_patterns):
 
 # def copy_plural_forms(msgs, locale, domain, verbosity, stdout=sys.stdout):
 #     """
-#     Copies plural forms header contents from a Django catalog of locale to
+#     Copies plural forms header contents from a Linkmanager catalog of locale to
 #     the msgs string, inserting it at the right place. msgs should be the
 #     contents of a newly created .po file.
 #     """
@@ -61,10 +61,6 @@ def write_pot_file(potfile, msgs, file, work_file, is_templatized):
     Write the :param potfile: POT file with the :param msgs: contents,
     previously making sure its format is valid.
     """
-    if is_templatized:
-        old = '#: ' + work_file[2:]
-        new = '#: ' + file[2:]
-        msgs = msgs.replace(old, new)
     if os.path.exists(potfile):
         # Strip the header
         msgs = '\n'.join(dropwhile(len, msgs.split('\n')))
@@ -82,8 +78,11 @@ def write_po_file(pofile, potfile, domain, locale, verbosity, stdout,
 
     Uses mguniq, msgmerge, and msgattrib GNU gettext utilities.
     """
-    msgs, errors, status = _popen('msguniq %s %s --to-code=utf-8 "%s"' %
-                                    (wrap, location, potfile))
+    msgs, errors, status = _popen(
+        'msguniq %s %s --to-code=utf-8 "%s"' % (
+            wrap, location, potfile
+        )
+    )
     if errors:
         if status != STATUS_OK:
             os.unlink(potfile)
@@ -95,8 +94,9 @@ def write_po_file(pofile, potfile, domain, locale, verbosity, stdout,
     if os.path.exists(pofile):
         with open(potfile, 'w') as fp:
             fp.write(msgs)
-        msgs, errors, status = _popen('msgmerge %s %s -q "%s" "%s"' %
-                                        (wrap, location, pofile, potfile))
+        msgs, errors, status = _popen('msgmerge %s %s -q "%s" "%s"' % (
+            wrap, location, pofile, potfile
+        ))
         if errors:
             if status != STATUS_OK:
                 os.unlink(potfile)
@@ -110,7 +110,7 @@ def write_po_file(pofile, potfile, domain, locale, verbosity, stdout,
         "#. #-#-#-#-#  %s.pot (PACKAGE VERSION)  #-#-#-#-#\n" % domain, "")
     with open(pofile, 'w') as fp:
         fp.write(msgs)
-    os.unlink(potfile)
+    #os.unlink(potfile)
     if no_obsolete:
         msgs, errors, status = _popen(
             'msgattrib %s %s -o "%s" --no-obsolete "%s"' %
@@ -135,12 +135,17 @@ def _popen(cmd):
     return output, errors, p.returncode
 
 
-def find_files(root, ignore_patterns, verbosity, stdout=sys.stdout, symlinks=False):
+def find_files(
+    root, ignore_patterns, verbosity, stdout=sys.stdout, symlinks=False
+):
     """
     Helper function to get all files in the given root.
     """
     dir_suffix = '%s*' % os.sep
-    norm_patterns = [p[:-len(dir_suffix)] if p.endswith(dir_suffix) else p for p in ignore_patterns]
+    norm_patterns = [
+        p[:-len(dir_suffix)] if p.endswith(dir_suffix) else p
+        for p in ignore_patterns
+    ]
     all_files = []
     for dirpath, dirnames, filenames in os.walk(root, topdown=True, followlinks=symlinks):
         for dirname in dirnames[:]:
@@ -151,7 +156,9 @@ def find_files(root, ignore_patterns, verbosity, stdout=sys.stdout, symlinks=Fal
         for filename in filenames:
             if is_ignored(os.path.normpath(os.path.join(dirpath, filename)), ignore_patterns):
                 if verbosity > 1:
-                    stdout.write('ignoring file %s in %s\n' % (filename, dirpath))
+                    stdout.write(
+                        'ignoring file %s in %s\n' % (filename, dirpath)
+                    )
             else:
                 all_files.extend([(dirpath, filename)])
     all_files.sort()
@@ -159,7 +166,7 @@ def find_files(root, ignore_patterns, verbosity, stdout=sys.stdout, symlinks=Fal
 
 args = [
     'xgettext',
-    '-d django',
+    '-d linkmanager',
     '--language=Python',
     '--keyword=gettext_noop',
     '--keyword=gettext_lazy',
@@ -171,8 +178,8 @@ args = [
     '--keyword=npgettext:1c,2,3',
     '--keyword=pgettext_lazy:1c,2',
     '--keyword=npgettext_lazy:1c,2,3',
-    '--from-code=UTF-8',
-    '--add-comments=Translators'
+    '--add-comments=Translators',
+    '-j'
 ]
 
 if __name__ == "__main__":
@@ -187,7 +194,7 @@ if __name__ == "__main__":
     output, errors, status = _popen('xgettext --version')
     if status != STATUS_OK:
         raise CommandError(
-            "Error running xgettext. Note that Django "
+            "Error running xgettext. Note that LinkManager "
             "internationalization requires GNU gettext 0.15 or newer."
         )
     match = re.search(r'(?P<major>\d+)\.(?P<minor>\d+)', output)
@@ -221,28 +228,35 @@ if __name__ == "__main__":
         if os.path.exists(potfile):
             os.unlink(potfile)
 
-        for dirpath, file in find_files(
-            ".", ['.*', './.git', 'CVS', '.pyc', '*~'],
+        files = find_files(
+            ".", [
+                'build',
+                'linkmanager/tests', 'compilemessages.py', 'dump.py',
+                'flushdb.py', 'get_interface.py', 'makemessages.py',
+                'populate.py', 'setup.py', 'setup.py', 'show.py', 'tasks.py',
+                '.*', './.git', 'CVS', '.pyc', '*~'
+            ],
             verbosity, stdout, False
-        ):
+        )
+
+        for dirpath, file in files:
             _, file_ext = os.path.splitext(file)
-            if file_ext == '.py':
+            if file_ext == '.py' or _ == 'linkm':
                 orig_file = os.path.join(dirpath, file)
                 work_file = orig_file
-                # with open(orig_file, "rU") as fp:
-                #     src_data = fp.read()
-                # thefile = '%s.py' % file
-                # #content = templatize(src_data, orig_file[2:])
-                # with open(os.path.join(dirpath, thefile), "w") as fp:
-                #     #fp.write(content)
-                #     fp.write(src_data)
 
                 args.append('-o %s ' % pofile)
                 args.append(work_file)
 
                 msgs, errors, status = _popen(' '.join(args))
+                if errors:
+                    raise CommandError(
+                        "errors happened while running xgettext on %s\n%s" %
+                        (file, errors))
                 if msgs:
-                    write_pot_file(potfile, msgs, file, work_file, is_templatized)
+                    write_pot_file(
+                        potfile, msgs, file, work_file, is_templatized
+                    )
 
         if os.path.exists(potfile):
             write_po_file(

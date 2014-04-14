@@ -21,8 +21,8 @@ def trans(pull=False):
     ### need python < 3
     # if pull:
     #     run('tx pull -a')
-    run('./makemessages')
-    run('./compilemessages')
+    run('./makemessages.py')
+    run('./compilemessages.py')
 
 
 @task

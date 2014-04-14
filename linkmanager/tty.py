@@ -1,4 +1,4 @@
-# encoding=utf8
+# -*- coding: utf-8 -*-
 # python2 "raw_input()" was renamed to input() on python3
 try:
     input = raw_input
@@ -117,7 +117,7 @@ class TTYInterface:
                         bold=True
                     )
                 )
-                if update not in ['Y', '']:
+                if update not in [_('Y'), '']:
                     continue
                 properties = db.get_link_properties(l)
                 properties = properties + (str(arrow.now()),)
@@ -150,7 +150,7 @@ class TTYInterface:
                         bold=True
                     )
                 )
-                if add not in ['Y', '']:
+                if add not in [_('Y'), '']:
                     continue
             else:
                 properties = db.get_link_properties(l)
@@ -194,6 +194,7 @@ class TTYInterface:
             flush_choice = input(white(
                 _(
                     "You're about to empty the entire Database."
+                ) + _(
                     "Are you sure [Y/n] ?"
                 ) + " ",
                 bold=True, bg_color='red'

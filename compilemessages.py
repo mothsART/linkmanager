@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 import codecs
@@ -47,16 +48,14 @@ def has_bom(fn):
 
 def compile_messages(stderr, locale=None):
     basedirs = [os.path.join('linkmanager', 'locale'), 'locale']
-    if os.environ.get('DJANGO_SETTINGS_MODULE'):
-        from django.conf import settings
-        basedirs.extend(settings.LOCALE_PATHS)
 
     # Gather existing directories.
     basedirs = set(map(os.path.abspath, filter(os.path.isdir, basedirs)))
 
     if not basedirs:
         raise CommandError(
-            "This script should be run from the LinkManager Git checkout or your project or app tree, or with the settings module specified.")
+            "This script should be run from the LinkManager Git checkout or your project or app tree, or with the settings module specified."
+        )
 
     for basedir in basedirs:
         if locale:

@@ -1,4 +1,4 @@
-# encoding=utf8
+# -*- coding: utf-8 -*-
 
 __appname__ = 'linkmanager'
 __author__ = "Ferry Jérémie <jerem.ferry@gmail.com>"
