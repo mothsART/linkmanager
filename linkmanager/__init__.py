@@ -1,10 +1,10 @@
-# encoding=utf8
+# -*- coding: utf-8 -*-
 
 __appname__ = 'linkmanager'
-__author__ = "Ferry Jérémie <jerem.ferry@gmail.com>"
+__author__ = "Jérémie Ferry <jerem.ferry@gmail.com>"
 __licence__ = "BSD"
 __website__ = "https://github.com/mothsART/linkmanager"
-__version__ = '0.2'
+__version__ = '0.30'
 VERSION = tuple(map(int, __version__.split('.')))
 
 

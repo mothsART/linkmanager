@@ -1,6 +1,14 @@
 Release History
 ===============
 
+0.30 (2014-04-15)
+-----------------
+
+ - some setup.py correction + init redis on launch
+ - debian package + travis/tox
+ - add version option
+ - better i18n + change makemessages script + new doc example
+
 0.2 (2014-03-14)
 ----------------
 
