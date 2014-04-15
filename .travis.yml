@@ -2,7 +2,7 @@ language: python
 services:
   - redis-server
 install:
-  - pip install --upgrade distribute tox coveralls
+  - pip install --upgrade setuptools tox coveralls
 script:
   - tox
 env:
