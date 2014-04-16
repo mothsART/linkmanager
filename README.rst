@@ -2,7 +2,7 @@
     :target: http://badge.fury.io/py/linkmanager
 
 .. image:: https://pypip.in/d/linkmanager/badge.png
-    :target: https://pypi.python.org/pypi/linkmanager/
+    :target: https://pypi.python.org/pypi/linkmanager
 
 .. image:: https://travis-ci.org/mothsART/linkmanager.png?branch=master
    :target: https://travis-ci.org/mothsART/linkmanager
