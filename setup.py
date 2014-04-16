@@ -22,7 +22,7 @@ import os
 base = os.path.dirname(__file__)
 
 readme = open(os.path.join(base, 'README.rst')).readlines()
-readme = "".join(readme[23:])
+readme = "".join(readme[:12] + readme[32:])
 changelog = open(os.path.join(base, 'HISTORY.rst')).read()
 
 # use this option (on end) when using on debian rules : createdeb
@@ -80,7 +80,6 @@ class PyTest(TestCommand):
         import pytest
         errno = pytest.main(self.test_args)
         sys.exit(errno)
-
 setup(
     name=__appname__,
     version=__version__,
