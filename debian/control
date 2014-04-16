@@ -22,7 +22,7 @@ Depends: ${python3:Depends},
  python3-argcomplete,
  python3-redis,
  python3-arrow,
- python-clint,
+ python3-clint,
  ${shlibs:Depends},
  ${misc:Depends}
 Homepage: https://github.com/mothsART/linkmanager

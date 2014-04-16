@@ -1,4 +1,4 @@
-linkmanager (0.30) saucy;  urgency=low
+linkmanager (0.3.0) saucy;  urgency=low
 
   * some setup.py correction + init redis on launch
   * debian package + travis/tox

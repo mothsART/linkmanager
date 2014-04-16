@@ -1,8 +1,8 @@
 Release History
 ===============
 
-0.30 (2014-04-15)
------------------
+0.3.0 (2014-04-15)
+------------------
 
  - some setup.py correction + init redis on launch
  - debian package + travis/tox
