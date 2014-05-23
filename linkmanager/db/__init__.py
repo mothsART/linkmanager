@@ -1,17 +1,58 @@
 import redis
 import json
 import uuid
+
 from collections import OrderedDict
+
+import datetime
+from requests_futures.sessions import FuturesSession
+from bs4 import BeautifulSoup
 
 from linkmanager import settings
 
 
-class RedisDb(object):
-    """ Redis DataBase """
+class MixinDb(object):
+    """ Abstract DataBase Class """
     host = settings.DB['HOST']
     port = settings.DB['PORT']
     db_nb = settings.DB['DB_NB']
     properties = False
+
+    def load(self, fixture):
+        """ Load a string : json format """
+        fixture = json.loads(fixture)
+        # start_time = datetime.datetime.now()
+        # session = FuturesSession(max_workers=settings.WORKERS)
+
+        # urls = []
+        # for link in fixture:
+        #     if 'title' in fixture[link]:
+        #         if fixture[link]['title'] == '':
+        #             url = session.get(link)
+        #         else:
+        #             url = link
+        #     else:
+        #         url = session.get(link)
+        #     urls.append((url, link))
+        # for url in urls:
+        #     title = ''
+        #     if type(url) == str:
+        #         continue
+        #     try:
+        #         result = url[0].result()
+        #     except:
+        #         # 404 page
+        #         continue
+        #     title = BeautifulSoup(result.content).title.string.strip()
+        #     fixture.get(url[1])['title'] = title
+
+        # elsapsed_time = datetime.datetime.now() - start_time
+        # print("Elapsed time: %ss" % elsapsed_time.total_seconds())
+        return self._add_links(fixture)
+
+
+class RedisDb(MixinDb):
+    """ Redis DataBase """
 
     def __init__(self, test=False):
         """ Create a Redis DataBase """
@@ -46,12 +87,21 @@ class RedisDb(object):
                 self._db.hset('links_uuid', link, l_uuid)
 
             for tag in value['tags']:
+                for inc in range(len(tag)):
+                    self._db.zadd(':compl', 0, tag[:inc])
+                self._db.zadd(':compl', 0, tag + '*')
                 self._db.sadd(tag, l_uuid)
+
+            title = ''
+            if 'title' in value:
+                title = value['title']
 
             self._db.hmset(
                 l_uuid,
                 {
+                    'title': title,
                     'name': link,
+                    'real link': link,
                     'priority': value['priority'],
                     'description': value['description'],
                     'init date': value['init date'],
@@ -61,13 +111,52 @@ class RedisDb(object):
         return True
 
     def get_link_properties(self, link):
+        " Return all properties correspond to a link"
+        properties = {}
         l_uuid = self._db.hget('links_uuid', link)
-        tags = self.tags(l_uuid)
+        properties['tags'] = self.tags(l_uuid)
         p = self._db.hgetall(l_uuid)
-        priority = p[b"priority"].decode()
-        description = p[b"description"].decode()
-        init_date = p[b"init date"].decode()
-        return tags, priority, description, init_date
+        properties['real link'] = p[b"real link"].decode()
+        properties['title'] = p[b"title"].decode()
+        properties['priority'] = p[b"priority"].decode()
+        properties['description'] = p[b"description"].decode()
+        properties['init_date'] = p[b"init date"].decode()
+        properties['update_date'] = p[b"update date"].decode()
+        properties['l_uuid'] = l_uuid.decode()
+        return properties
+
+    def complete_tags(self, value=''):
+        " Give a list of possible tags"
+        # This is not random, try to get replies < MTU size
+        rangelen = 50
+        rank = self._db.zrank(':compl', value)
+        # No tag to complete
+        if not rank:
+            return []
+        compl = self._db.zrange(':compl', rank, rank + rangelen - 1)
+        ###TODO : perform scalability
+        # 2 algos for little and big database
+        # alphabet = 'abcdefghijklmnopqrstuvwxyz'
+        # b_value = ''
+        # a_value = ''
+        # last_c = ''
+        # for v in value:
+        #     pos = alphabet.find(v)
+        #     a_value = b_value + alphabet[pos + 1]
+        #     b_value = b_value[:-1] + last_c + alphabet[pos + 1]
+        #     last_c = v
+        #     print(self._db.zrank(':compl', a_value))
+        complete_tags = []
+        for c in compl:
+            c = c.decode()
+            if (
+                not c.startswith(value)
+                and len(complete_tags) >= settings.NB_AUTOSUGGESTIONS
+            ):
+                break
+            if c.startswith(value) and c.endswith('*'):
+                complete_tags.append(c[:-1])
+        return complete_tags
 
     def tags(self, l_uuid=None):
         tags = []
@@ -81,6 +170,7 @@ class RedisDb(object):
         return sorted(tags)
 
     def link_exist(self, link):
+        " Test if a link exist"
         if not self._db.hexists('links_uuid', link):
             return False
         return True
@@ -151,34 +241,24 @@ class RedisDb(object):
             links.items(), key=lambda t: (- int(t[1]), t[0])
         )[:settings.NB_RESULTS])
 
-    def load(self, fixture):
-        """ Load a string : json format """
-        fixture = json.loads(fixture)
-        return self._add_links(fixture)
-
     def dump(self):
         """ Serialize all fields on a json format string """
         links = {}
-        for tag in self.tags():
-            members = self._db.smembers(tag)
-            for m in members:
-                if m in links:
-                    links[m]["tags"].add(tag)
-                else:
-                    links[m] = {"tags": set([tag])}
-        dump_links = {}
-        for l in links:
-            p = self._db.hgetall(l)
-            tags = sorted(links[l]["tags"])
-            dump_links[p[b'name'].decode()] = {
-                "tags": tags,
-                "priority": p[b"priority"].decode(),
-                "description": p[b"description"].decode(),
-                "init date": p[b"init date"].decode(),
-                "update date": p[b"update date"].decode()
-            }
+        for str_link in self.get_links():
+            l = self._db.hgetall(str_link)
+            links[l[b'name'].decode()] = {}
+            link = links[l[b'name'].decode()]
+
+            link['tags'] = self.tags(str_link)
+            p = self._db.hgetall(str_link)
+            link['real link'] = p[b"real link"].decode()
+            link['title'] = p[b"title"].decode()
+            link['priority'] = p[b"priority"].decode()
+            link['description'] = p[b"description"].decode()
+            link['init_date'] = p[b"init date"].decode()
+            link['update_date'] = p[b"update date"].decode()
         return json.dumps(
-            dump_links, sort_keys=True, indent=4
+            links, sort_keys=True, indent=4
         )
 
     def flush(self):

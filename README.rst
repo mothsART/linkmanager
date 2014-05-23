@@ -10,6 +10,8 @@
 .. image:: https://coveralls.io/repos/mothsART/linkmanager/badge.png?branch=master
     :target: https://coveralls.io/r/mothsART/linkmanager?branch=master
 
+::
+
     _*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_
     *_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*
 

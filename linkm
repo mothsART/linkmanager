@@ -23,8 +23,15 @@ from linkmanager.translation import gettext as _
 from linkmanager import interface, __version__, __appname__
 TTYInterface = interface()
 
+
+def version(cool):
+    print('%s %s (python %s)' % (
+        __appname__, __version__, sys.version
+    ))
+
 choices = {
     'add': ['a', 'add', _('add links'), TTYInterface.addlinks],
+    'version': ['v', 'version', _('show linkmanager version'), version],
     'udpate': ['u', 'update', _('update links'), TTYInterface.updatelinks],
     'remove': ['r', 'remove', _('remove links'), TTYInterface.removelinks],
     'flush': [
@@ -96,10 +103,8 @@ parser.add_argument(
     default=False, action='store_const', const='forced'
 )
 parser.add_argument(
-    '-v', '--version', help=_('show linkmanager version'),
-    action='version', version='%s %s (python %s)' % (
-        __appname__, __version__, sys.version
-    )
+    '-v', '--verbose', help=_('verbose option'),
+    default=False, action='store_const', const='verbose'
 )
 parser.add_argument(
     'value', nargs='*'
@@ -115,6 +120,9 @@ try:
     elif f_name == 'dump':
         Choices.call(args['choice'])()
     else:
-        Choices.call(args['choice'])(args['value'])
+        verbose = False
+        if args['verbose'] == 'verbose':
+            verbose = True
+        Choices.call(args['choice'])(args['value'], verbose)
 except KeyboardInterrupt:
     print('\n' + _('Ctrl + C interruption'))

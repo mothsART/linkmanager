@@ -1,5 +1,4 @@
 import os
-import sys
 import gettext as gettext_module
 from threading import local
 
@@ -94,7 +93,9 @@ def translation(language):
 
         def _translation(path):
             try:
-                t = gettext_module.translation('linkmanager', path, [loc], LinkManagerTranslation)
+                t = gettext_module.translation(
+                    'linkmanager', path, [loc], LinkManagerTranslation
+                )
                 t.set_language(lang)
                 return t
             except IOError:
@@ -145,7 +146,11 @@ def do_translate(message, translation_function):
     global _default
 
     # str() is allowing a bytestring message to remain bytestring on Python 2
-    eol_message = message.replace(str('\r\n'), str('\n')).replace(str('\r'), str('\n'))
+    eol_message = message.replace(
+        str('\r\n'), str('\n')
+    ).replace(
+        str('\r'), str('\n')
+    )
     t = getattr(_active, "value", None)
     if t is not None:
         result = getattr(t, translation_function)(eol_message)

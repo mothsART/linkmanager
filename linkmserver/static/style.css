@@ -1,0 +1,53 @@
+/* Nav */
+.nav button {
+    background-color: white;
+    border: none;
+    height: 30px;
+    width: 40px;
+}
+.nav button:hover,.nav button:active, .nav button:focus {
+    border: none;
+}
+/* SearchBar */
+.has-feedback .form-control-feedback {
+    top: 1px;
+    z-index: 1;
+}
+.has-success .form-control {
+    border-color: #ccc;
+}
+ul.ui-corner-all {
+    margin-top: 1px;
+    padding: 0;
+    border: solid 1px #ccc;
+    border-top: none;
+}
+.ui-corner-all, .ui-corner-bottom,
+.ui-corner-right, .ui-corner-br {
+    border-radius: 0;
+    background-color: white;
+}
+.ui-state-hover,
+.ui-widget-content.ui-state-hover,
+.ui-widget-header .ui-state-hover,
+.ui-state-focus,
+.ui-widget-content .ui-state-focus,
+.ui-widget-header .ui-state-focus {
+    border: none;
+    color: black;
+    background: none;
+    background-color: #ddd;
+}
+.ui-menu .ui-menu-item a.ui-state-focus,
+.ui-menu .ui-menu-item a.ui-state-active {
+    margin: 0;
+}
+/* Misc */
+#nb-results {
+    height: 34px;
+    line-height: 34px;
+    vertical-align: middle;
+}
+#responses {
+    margin-top: 30px;
+}

@@ -5,16 +5,25 @@ try:
 except NameError:
     pass
 
+import logging
 import readline
 import json
 
 import arrow
-from clint.textui.colored import green, red, white
+from clint.textui.colored import green, red, white, yellow
+import requests
+from requests_futures.sessions import FuturesSession
+from bs4 import BeautifulSoup
 
-from .settings import (TEST, INDENT)
+from .settings import (
+    TEST, INDENT,
+    MINIMIZE_URL, MINIMIZER, MINIMIZER_MIN_SIZE
+)
 from .translation import gettext as _
 from . import validators
 from .db import DataBase
+
+logger = logging.getLogger()
 
 
 class TTYInterface:
@@ -31,47 +40,69 @@ class TTYInterface:
         readline.set_pre_input_hook()
         return value
 
-    def properties_input(self, l, *properties):
+    def properties_input(
+        self, link, minimize_link,
+        tags=[], priority=1, description='', date='', title=''
+    ):
         """
         Process to recover with input's functions :
         tags, priority value and a description associate with a link.
         """
-        print(green(_('%s properties') % l + ' : ', bold=True))
-        if len(properties[0]) > 1:
-            tags = ', '.join(properties[0])
+        session = FuturesSession()
+        url = session.get(link)
+
+        ### Enter tags
+        p = _('%s properties') % link
+        begin_pos = p.find('http')
+        end_pos = p[begin_pos:].find(' ')
+        if end_pos == -1:
+            end_pos = len(p)
+        print(
+            green(p[0:begin_pos], bold=True)
+            + white(
+                p[begin_pos:begin_pos + end_pos],
+                bold=True, bg_color="green"
+            )
+            + green(p[begin_pos + end_pos:len(p)] + ' :', bold=True)
+        )
+
+        if len(tags) > 1:
+            new_tags = ' '.join(tags)
         else:
-            tags = properties[0]
-        tags = str(self.preinput(
+            new_tags = tags
+        new_tags = str(self.preinput(
             ' ' * INDENT
             + green(
-                _('tags (separate with ",")') + ' : ',
+                _('tags (separate with spaces)') + ' :',
                 bold=True
-            ),
-            tags
+            ) + ' ',
+            new_tags
         ))
-        if tags.find(',') == -1:
-            tags = [tags]
+        if new_tags.find(' ') == -1:
+            new_tags = [new_tags]
         else:
-            tags = tags.split(',')
-        tags = [tag.strip() for tag in tags]
-        priority = self.preinput(
+            new_tags = new_tags.split()
+        new_tags = [tag.strip() for tag in new_tags]
+
+        ### Enter priority
+        new_priority = self.preinput(
             ' ' * INDENT
             + green(
-                _('priority value (integer value between 1 and 10)') + ' : ',
+                _('priority value (integer value between 1 and 10)') + ' :',
                 bold=True
-            ),
-            properties[1]
+            ) + ' ',
+            priority
         )
         while True:
-            if priority == '':
-                priority = 1
+            if new_priority == '':
+                new_priority = 1
             try:
-                priority = int(priority)
-                if priority > 0 and priority < 11:
+                new_priority = int(new_priority)
+                if new_priority > 0 and new_priority < 11:
                     break
             except:
                 pass
-            priority = self.preinput(
+            new_priority = self.preinput(
                 ' ' * INDENT
                 + red(
                     _(
@@ -80,20 +111,51 @@ class TTYInterface:
                     ) + ' : ',
                     bold=True
                 ),
-                properties[1]
+                priority
             )
-        description = self.preinput(
+
+        ### Enter description
+        new_description = self.preinput(
             ' ' * INDENT
             + green(_('give a description') + ' : ', bold=True),
-            properties[2]
+            description
         )
-        return tags, priority, description
+        # test if URL exist
+        try:
+            result = url.result()
+            link = result.url
+        except requests.exceptions.ConnectionError:
+            result = None
+
+        if title != '' and result:
+            if result.status_code == 200:
+                title = BeautifulSoup(result.content).title.string
+        ### Enter title
+        new_title = self.preinput(
+            ' ' * INDENT
+            + green(_('give a title') + ' : ', bold=True),
+            title
+        )
+        ### Minimize URL if necessite
+        if (
+            MINIMIZE_URL and minimize_link == ''
+            and len(link) > MINIMIZER_MIN_SIZE
+        ):
+            try:
+                result = requests.get(MINIMIZER + link)
+                minimize_link = result.content
+            except requests.exceptions.ConnectionError:
+                pass
+        print(link, minimize_link)
+        ### Cache websites
+
+        return new_tags, new_priority, new_description, new_title
 
     def _links_validator(self, links=None):
         """ Valid or not link list """
         if not links:
             links = input(
-                _('Give one or several links (separate with space)') + ' : '
+                _('Give one or several links (separate with spaces)') + ' : '
             )
             links = links.split()
         # keep only URLs that validate
@@ -105,7 +167,7 @@ class TTYInterface:
         fixture = {}
         db = DataBase(test=self.test)
         for l in links:
-            properties = ([], '', '', str(arrow.now()), None)
+            properties = ('', [], '', '', str(arrow.now()), None)
             if db.link_exist(l):
                 update = input(
                     ' ' * INDENT
@@ -121,11 +183,14 @@ class TTYInterface:
                     continue
                 properties = db.get_link_properties(l)
                 properties = properties + (str(arrow.now()),)
-            tags, priority, description = self.properties_input(l, *properties)
+            tags, priority, description, title = self.properties_input(
+                l, *properties
+            )
             fixture[l] = {
                 "tags": tags,
                 "priority": priority,
                 "description": description,
+                "title": title,
                 "init date": properties[3],
                 "update date": properties[4]
             }
@@ -138,7 +203,7 @@ class TTYInterface:
         fixture = {}
         db = DataBase(test=self.test)
         for l in links:
-            properties = ([], '', '', str(arrow.now()), None)
+            properties = ('', [], '', '', str(arrow.now()), None)
             if not db.link_exist(l):
                 add = input(
                     ' ' * INDENT
@@ -155,11 +220,15 @@ class TTYInterface:
             else:
                 properties = db.get_link_properties(l)
                 properties = properties + (str(arrow.now()),)
-            tags, priority, description = self.properties_input(l, *properties)
+            print(properties)
+            tags, priority, description, title = self.properties_input(
+                l, *properties
+            )
             fixture[l] = {
                 "tags": tags,
                 "priority": priority,
                 "description": description,
+                "title": title,
                 "init date": properties[3],
                 "update date": properties[4]
             }
@@ -196,9 +265,9 @@ class TTYInterface:
                     "You're about to empty the entire Database."
                 ) + _(
                     "Are you sure [Y/n] ?"
-                ) + " ",
+                ),
                 bold=True, bg_color='red'
-            ))
+            ) + " ")
         if flush_choice == _('Y') or flush_choice == '':
             if DataBase(test=self.test).flush():
                 print(white(
@@ -208,7 +277,7 @@ class TTYInterface:
                 return True
         return False
 
-    def load(self, json_files=None):
+    def load(self, json_files=None, verbose=False):
         """ CMD: Load a json file """
         if not json_files:
             print(white(
@@ -217,9 +286,31 @@ class TTYInterface:
             ))
             return False
         db = DataBase(test=self.test)
+        links = {}
+        duplicates = []
         for json_file in json_files:
             with open(json_file) as f:
-                db.load(f.read())
+                fixture = json.loads(f.read())
+            for link in fixture:
+                if link in links:
+                    if links[link] == fixture[link]:
+                        continue
+                    duplicates.append(
+                        yellow(
+                            _(
+                                'Duplicate error '
+                                + '(same link with different properties) :'
+                            ),
+                            bold=True, bg_color='red'
+                        )
+                        + ' ' + link
+                    )
+                links[link] = fixture[link]
+        if duplicates != []:
+            for d in set(duplicates):
+                logger.error(d)
+            return False
+        db.load(json.dumps(links))
         return True
 
     def dump(self):
@@ -227,7 +318,7 @@ class TTYInterface:
         print(DataBase(test=self.test).dump())
         return True
 
-    def searchlinks(self, tags=[]):
+    def searchlinks(self, tags=[], verbose=False):
         """ CMD: Search links on Database filtering by tags """
         d = DataBase(test=self.test)
         links = d.sorted_links(*tags)
@@ -250,6 +341,85 @@ class TTYInterface:
                 _('%s links founded') % c_links + ' : ',
                 bold=True, bg_color='green'
             ))
-        for l in links:
-            print(' ' * INDENT + white(l))
+        if verbose is True:
+            nb_decade = int(len(str(len(links))))
+            i = 0
+            for l in links:
+                i += 1
+                index_space = nb_decade - int(len(str(i)))
+                index_indent = ''
+                if index_space:
+                    index_indent = ' ' * index_space
+                properties = d.get_link_properties(l)
+                print(
+                    ' ' * INDENT,
+                    index_indent, '%d ➤' % i,
+                    white(l, underline=True)
+                )
+                if properties['title']:
+                    print(
+                        '%s ├── %s : %s' % (
+                            ' ' * INDENT * 2,
+                            _('title'),
+                            properties['title']
+                        )
+                    )
+                print(
+                    '%s ├── %s' % (
+                        ' ' * INDENT * 2,
+                        properties['l_uuid']
+                    )
+                )
+                if l != properties['real link']:
+                    print(
+                        '%s ├── %s : %s' % (
+                            ' ' * INDENT * 2,
+                            _('URL complète'),
+                            white(properties['real link'], underline=True)
+                        )
+                    )
+                print(
+                    '%s ├── %s : %s' % (
+                        ' ' * INDENT * 2,
+                        _('ordre de priorité'),
+                        properties['priority']
+                    )
+                )
+                print(
+                    '%s ├── %s : %s' % (
+                        ' ' * INDENT * 2,
+                        _('tags'),
+                        ' '.join(properties['tags'])
+                    )
+                )
+                print(
+                    '%s ├── %s : %s' % (
+                        ' ' * INDENT * 2,
+                        _('description'),
+                        properties['description']
+                    )
+                )
+                cd = arrow.get(properties['init_date'])
+                create_date = _('create the %s at %s') % (
+                    cd.format('DD MMMM YYYY'),
+                    cd.format('HH:mm:ss')
+                )
+                if properties['update_date'] == 'None':
+                    update_date = ' ' + _('and not updated yet.')
+                else:
+                    up = arrow.get(properties['update_date'])
+                    update_date = _(' and update the %s at %s.') % (
+                        up.format('DD MMMM YYYY'),
+                        up.format('HH:mm:ss')
+                    )
+                date = create_date + update_date
+                print(
+                    '%s └── %s' % (
+                        ' ' * INDENT * 2,
+                        date
+                    )
+                )
+        else:
+            for l in links:
+                print(' ' * INDENT + white(l))
         return True

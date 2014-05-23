@@ -20,7 +20,7 @@ msgstr ""
 #: get_interface.py:33 linkmanager/__init__.py:215 linkmanager/tty.py:205
 #: linkmanager/tty.py:205
 msgid "Database entirely flushed."
-msgstr "Base de donnée vidé."
+msgstr "Base de données vidée."
 
 #: linkm.py:14 linkm:27 linkm:27
 msgid "add links"
@@ -36,19 +36,19 @@ msgstr "supprimer une URL"
 
 #: linkm:32 linkm:32
 msgid "flush the entire database"
-msgstr "vider la base de donnée au complet"
+msgstr "vider la base de données au complet"
 
 #: linkm:34 linkm:34
 msgid "load a json database file"
-msgstr "charger une base de donnée au format Json"
+msgstr "charger une base de données au format Json"
 
 #: linkm:37 linkm:37
 msgid "dump all database to a json file"
-msgstr "sérialiser une base de donnée au format Json"
+msgstr "sérialiser une base de données au format Json"
 
 #: linkm:41 linkm:41
 msgid "search links on database"
-msgstr "chercher un lien dans la base de donnée"
+msgstr "chercher un lien dans la base de données"
 
 #: linkm:68 linkm:68
 msgid "Choices supports the following: (short cmd/cmd)"
@@ -69,11 +69,11 @@ msgstr "interruption avec Ctrl + C"
 #: linkmanager/__init__.py:45 linkmanager/tty.py:39 linkmanager/tty.py:39
 #, python-format
 msgid "%s properties"
-msgstr "propriétés %s"
+msgstr "propriétés de %s"
 
 #: linkmanager/__init__.py:53 linkmanager/tty.py:47 linkmanager/tty.py:47
-msgid "tags (separate with \",\")"
-msgstr "étiquettes (separé avec des \",\")"
+msgid "tags (separate with spaces)"
+msgstr "étiquettes (séparés par des espaces)"
 
 #: linkmanager/__init__.py:66 linkmanager/tty.py:60 linkmanager/tty.py:60
 msgid "priority value (integer value between 1 and 10)"
@@ -88,15 +88,15 @@ msgid "give a description"
 msgstr "écrivez une description"
 
 #: linkmanager/__init__.py:103 linkmanager/tty.py:96 linkmanager/tty.py:96
-msgid "Give one or several links (separate with space)"
-msgstr "saisissez 1 ou plusieurs URL (séparés par un espace)"
+msgid "Give one or several links (separate with spaces)"
+msgstr "saisissez 1 ou plusieurs URL (séparés par des espaces)"
 
 #: linkmanager/__init__.py:122 linkmanager/tty.py:114 linkmanager/tty.py:114
 #, python-format
 msgid "the link \"%s\" already exist: do you want to update [Y/n] ?"
 msgstr ""
-"ce lien \"%s\" existe déjà : vous-les vous éditer les propriétés rattachés "
-"[O/n] ?"
+"ce lien \"%s\" existe déjà : vous-les vous éditer les propriétés rattachés"
+" [O/n] ?"
 
 #: linkmanager/__init__.py:156 linkmanager/tty.py:147 linkmanager/tty.py:147
 #, python-format
@@ -146,8 +146,8 @@ msgstr "O"
 
 #: linkmanager/tty.py:196 linkmanager/tty.py:196
 msgid "You're about to empty the entire Database."
-msgstr "Vous êtes sur le point de vider la Base de donnée."
+msgstr "Vous êtes sur le point de vider la Base de données."
 
 #: linkmanager/tty.py:198 linkmanager/tty.py:198
 msgid "Are you sure [Y/n] ?"
-msgstr "En êtes-vous bien sur?"
+msgstr "En êtes-vous bien sur [O/n] ?"

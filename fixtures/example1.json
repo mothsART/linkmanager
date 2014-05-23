@@ -1,0 +1,31 @@
+{
+    "http://ubuntu.com": {
+        "tags": ["ubuntu", "linux", "shell", "python"],
+        "priority": 10,
+        "description": "Fr Ubuntu site",
+        "init date": "2014-01-27T17:37:19.985742+00:00",
+        "update date": null
+    },
+    "http://linuxfr.org": {
+        "tags": ["linux", "bsd", "gnu"],
+        "priority": 8,
+        "description": "fr community ",
+        "init date": "2013-01-27T17:40:19.985742+00:00",
+        "update date": "2014-01-27T17:55:19.985742+00:00"
+    },
+    "http://phoronix.com": {
+        "tags": ["linux", "benchmark"],
+        "priority": 5,
+        "description": "OS benchmarking",
+        "init date": "2014-01-27T17:57:19.985742+00:00",
+        "update date": null
+    },
+    "http://flask.pocoo.org": {
+        "title": "a python micro-framework",
+        "tags": [],
+        "priority": 1,
+        "description": "web dev",
+        "init date": "2014-01-27T17:57:19.985742+00:00",
+        "update date": null
+    }
+}

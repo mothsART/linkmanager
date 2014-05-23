@@ -22,7 +22,7 @@ import os
 base = os.path.dirname(__file__)
 
 readme = open(os.path.join(base, 'README.rst')).readlines()
-readme = "".join(readme[:12] + readme[32:])
+readme = "".join(readme[:12] + readme[34:])
 changelog = open(os.path.join(base, 'HISTORY.rst')).read()
 
 # use this option (on end) when using on debian rules : createdeb
