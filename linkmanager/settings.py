@@ -30,8 +30,12 @@ MINIMIZER_MIN_SIZE = 20
 NB_AUTOSUGGESTIONS = 10
 NB_RESULTS = 50
 
-# specific to shell usage
+### CLI : specific to shell usage
 INDENT = 4
+
+### WEBSERVICE
+HTTP_PORT = 7777
+BROWSER = 'firefox'
 
 # nb of Workers
 WORKERS = 5

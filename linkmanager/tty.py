@@ -161,7 +161,7 @@ class TTYInterface:
         # keep only URLs that validate
         return [l for l in links if validators.URLValidator()(l)]
 
-    def addlinks(self, links=None):
+    def addlinks(self, links=None, verbose=False):
         """ CMD: Add links to Database """
         links = self._links_validator(links)
         fixture = {}
@@ -197,7 +197,7 @@ class TTYInterface:
         db.add_link(json.dumps(fixture))
         return True
 
-    def updatelinks(self, links=None):
+    def updatelinks(self, links=None, verbose=False):
         """ CMD: Update a link on Database """
         links = self._links_validator(links)
         fixture = {}

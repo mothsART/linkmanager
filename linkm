@@ -14,7 +14,7 @@ try:
     response = rs.client_list()
 except redis.ConnectionError:
     subprocess.Popen(
-        ['/usr/bin/redis-server', '&'],
+        '/usr/bin/redis-server &',
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         shell=True
     )
@@ -24,10 +24,18 @@ from linkmanager import interface, __version__, __appname__
 TTYInterface = interface()
 
 
-def version(cool):
+def version(args, verbose=False):
     print('%s %s (python %s)' % (
         __appname__, __version__, sys.version
     ))
+
+
+def webserver(args, verbose=False):
+    browser = None
+    if len(args) > 0:
+        browser = args[0]
+    from linkmserver import run
+    run(browser)
 
 choices = {
     'add': ['a', 'add', _('add links'), TTYInterface.addlinks],
@@ -46,7 +54,8 @@ choices = {
     'search': [
         's', 'search',
         _('search links on database'), TTYInterface.searchlinks
-    ]
+    ],
+    'web': ['w', 'web', _('launch a webservice'), webserver],
 }
 
 
@@ -88,41 +97,42 @@ class Choices(object):
             )
         return ''.join(description)
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawTextHelpFormatter,
+        epilog=Choices.descriptions(),
+        description=_('Manage your Links ...')
+    )
+    parser.add_argument(
+        'choice',
+        choices=Choices.cmd()
+    )
+    parser.add_argument(
+        '-f', '--forced',
+        help=_('force command to be quiet and without input'),
+        default=False, action='store_const', const='forced'
+    )
+    parser.add_argument(
+        '-v', '--verbose', help=_('verbose option'),
+        default=False, action='store_const', const='verbose'
+    )
+    parser.add_argument(
+        'value', nargs='*'
+    )
+    argcomplete.autocomplete(parser)
+    args = parser.parse_args()
+    args = vars(args)
 
-parser = argparse.ArgumentParser(
-    formatter_class=argparse.RawTextHelpFormatter,
-    epilog=Choices.descriptions(),
-    description=_('Manage your Links ...')
-)
-parser.add_argument(
-    'choice',
-    choices=Choices.cmd()
-)
-parser.add_argument(
-    '-f', '--forced', help=_('force command to be quiet and without input'),
-    default=False, action='store_const', const='forced'
-)
-parser.add_argument(
-    '-v', '--verbose', help=_('verbose option'),
-    default=False, action='store_const', const='verbose'
-)
-parser.add_argument(
-    'value', nargs='*'
-)
-argcomplete.autocomplete(parser)
-args = parser.parse_args()
-args = vars(args)
-
-try:
-    f_name = Choices.call(args['choice']).__name__
-    if f_name == 'flush':
-        Choices.call(args['choice'])(args['value'] + [args['forced']])
-    elif f_name == 'dump':
-        Choices.call(args['choice'])()
-    else:
-        verbose = False
-        if args['verbose'] == 'verbose':
-            verbose = True
-        Choices.call(args['choice'])(args['value'], verbose)
-except KeyboardInterrupt:
-    print('\n' + _('Ctrl + C interruption'))
+    try:
+        f_name = Choices.call(args['choice']).__name__
+        if f_name == 'flush':
+            Choices.call(args['choice'])(args['value'] + [args['forced']])
+        elif f_name == 'dump':
+            Choices.call(args['choice'])()
+        else:
+            verbose = False
+            if args['verbose'] == 'verbose':
+                verbose = True
+            Choices.call(args['choice'])(args['value'], verbose)
+    except KeyboardInterrupt:
+        print('\n' + _('Ctrl + C interruption'))
