@@ -1,15 +1,14 @@
 import json
+from itertools import cycle
 from collections import OrderedDict
-from unittest.mock import patch
-
-from linkmanager import db as test_db
+from unittest.mock import patch, mock_open
 
 uuids = [
-    'f252f3d1-dfcc-4987-a0c0-3ec057de707a',
-    '4c280fe3-2091-4c8d-92fd-660087dd8def',
-    '12a10826-9ccc-4123-8f6c-36fb55cbb40e',
+    'f252f3d1-dfcc-4987-a0c0-3ec057de707a',  # http://linuxfr.org
+    '4c280fe3-2091-4c8d-92fd-660087dd8def',  # http://phoronix.com
+    '12a10826-9ccc-4123-8f6c-36fb55cbb40e',  # http://ubuntu.com
 ]
-i_uuids = iter(uuids)
+i_uuids = cycle(iter(uuids))
 
 
 def gen_uuid():
@@ -29,14 +28,13 @@ first_fixture = """{
         "update date": "2014-01-27T17:55:19.985742+00:00"
     },
     "http://phoronix.com": {
-        "description": "OS benchmarkin",
+        "description": "OS benchmarking",
         "init date": "2014-01-27T17:57:19.985742+00:00",
         "priority": "5",
         "tags": [
             "benchmark",
             "linux"
-        ],
-        "update date": "None"
+        ]
     },
     "http://ubuntu.com": {
         "description": "Fr Ubuntu site",
@@ -47,19 +45,33 @@ first_fixture = """{
             "python",
             "shell",
             "ubuntu"
-        ],
-        "update date": "None"
+        ]
     }
 }
 """
 
+r = None
 
-r = test_db.RedisDb(test=True)
-r.flush()
+from linkmanager.tests import fakesettings
+import linkmanager
+linkmanager.settings = fakesettings
+del fakesettings.AUTHOR
 
 
+@patch('linkmanager.settings', fakesettings)
+@patch('os.getenv', lambda x: 'Author name')
+def test_init():
+    from linkmanager import db
+    global r
+    r = db.RedisDb(test=True)
+    r.flush()
+
+
+@patch('uuid.uuid4', gen_uuid)
+@patch('builtins.open', mock_open(read_data=first_fixture))
 def test_load_redis():
-    assert r.load(first_fixture) is True
+    global r
+    assert r.load(['file.json']) is True
     assert json.loads(first_fixture) == json.loads(r.dump())
 
 
@@ -69,30 +81,33 @@ def test_link_exist_redis():
 
 
 def test_get_link_properties_redis():
-    assert r.get_link_properties("http://ubuntu.com") == (
-        ['linux', 'python', 'shell', 'ubuntu'],
-        '10',
-        'Fr Ubuntu site',
-        '2014-01-27T17:37:19.985742+00:00'
-    )
+    assert r.get_link_properties("http://ubuntu.com") == {
+        'init date': '2014-01-27T17:37:19.985742+00:00',
+        'tags': ['linux', 'python', 'shell', 'ubuntu'],
+        'description': 'Fr Ubuntu site',
+        'l_uuid': '12a10826-9ccc-4123-8f6c-36fb55cbb40e',
+        'priority': '10'
+    }
 
 
 @patch('uuid.uuid4', gen_uuid)
+@patch('builtins.open', mock_open(read_data=first_fixture))
 def test_no_result_redis():
+    global r
     # All results
     r.flush()
-    r.load(first_fixture)
+    r.load(['file.json'])
     # No result
     assert r.get_links('linux', 'shell', 'bsd') == []
 
 
 def test_one_result_redis():
     # One result with multi-tags
-    links = [x.decode() for x in r.get_links('linux', 'shell')]
+    links = [x for x in r.get_links('linux', 'shell')]
     is_in_uuid = links[0] in uuids
     assert is_in_uuid is True
     # One result with one tag
-    links = [x.decode() for x in r.get_links('shell')]
+    links = [x for x in r.get_links('shell')]
     is_in_uuid = links[0] in uuids
     assert is_in_uuid is True
 
@@ -130,14 +145,13 @@ second_fixture = """{
         "update date": "2014-01-27T17:55:19.985742+00:00"
     },
     "http://phoronix.com": {
-        "description": "OS benchmarkin",
+        "description": "OS benchmarking",
         "init date": "2014-01-27T17:57:19.985742+00:00",
         "priority": "5",
         "tags": [
             "benchmark",
             "linux"
-        ],
-        "update date": "None"
+        ]
     },
     "http://ubuntu.com": {
         "description": "Fr Ubuntu site",
@@ -148,10 +162,10 @@ second_fixture = """{
             "python",
             "shell",
             "ubuntu"
-        ],
-        "update date": "None"
+        ]
     },
     "http://xkcd.com": {
+        "author": "Author name",
         "description": "A webcomic of romance ...",
         "init date": "2014-02-06T17:37:19.985742+00:00",
         "priority": "5",
@@ -160,28 +174,31 @@ second_fixture = """{
             "joke",
             "linux",
             "math"
-        ],
-        "update date": "None"
+        ]
     }
 }
 """
 
 
+# 037df763-c069-40f8-a5ab-ac8bda016feb => http://xkcd.com
+@patch('uuid.uuid4', lambda: '037df763-c069-40f8-a5ab-ac8bda016feb')
+@patch('linkmanager.settings', fakesettings)
+@patch('os.getenv', lambda x: 'Author name')
 def test_addlink_redis():
+    global r
     assert r.add_link(json_addlink) is True
     assert json.loads(second_fixture) == json.loads(r.dump())
 
 
 third_fixture = """{
     "http://phoronix.com": {
-        "description": "OS benchmarkin",
+        "description": "OS benchmarking",
         "init date": "2014-01-27T17:57:19.985742+00:00",
         "priority": "5",
         "tags": [
             "benchmark",
             "linux"
-        ],
-        "update date": "None"
+        ]
     },
     "http://ubuntu.com": {
         "description": "Fr Ubuntu site",
@@ -192,10 +209,10 @@ third_fixture = """{
             "python",
             "shell",
             "ubuntu"
-        ],
-        "update date": "None"
+        ]
     },
     "http://xkcd.com": {
+        "author": "Author name",
         "description": "A webcomic of romance ...",
         "init date": "2014-02-06T17:37:19.985742+00:00",
         "priority": "5",
@@ -204,8 +221,7 @@ third_fixture = """{
             "joke",
             "linux",
             "math"
-        ],
-        "update date": "None"
+        ]
     }
 }
 """
@@ -229,14 +245,13 @@ json_updatelink = """{
 
 fourth_fixture = """{
     "http://phoronix.com": {
-        "description": "OS benchmarkin",
+        "description": "OS benchmarking",
         "init date": "2014-01-27T17:57:19.985742+00:00",
         "priority": "5",
         "tags": [
             "benchmark",
             "linux"
-        ],
-        "update date": "None"
+        ]
     },
     "http://ubuntu.com": {
         "description": "Fr Ubuntu site",
@@ -247,10 +262,10 @@ fourth_fixture = """{
             "python",
             "shell",
             "ubuntu"
-        ],
-        "update date": "None"
+        ]
     },
     "http://xkcd.com": {
+        "author": "Author name",
         "description": "A webcomic of ...",
         "init date": "2012-02-06T17:37:19.985742+00:00",
         "priority": "2",
@@ -264,9 +279,12 @@ fourth_fixture = """{
 }
 """
 
+fakesettings.AUTHOR = 'Author name'
 
+
+@patch('linkmanager.settings', fakesettings)
 def test_updatelink_redis():
-    assert r.update_link(json_updatelink) is True
+    assert r.add_link(json_updatelink) is True
     assert json.loads(fourth_fixture) == json.loads(r.dump())
 
 
@@ -293,8 +311,7 @@ def test_sorted_links_redis():
                 b'init date': b'2014-01-27T17:37:19.985742+00:00',
                 b'priority': b'10',
                 b'description': b'Fr Ubuntu site',
-                b'name': b'http://ubuntu.com',
-                b'update date': b'None'
+                b'name': b'http://ubuntu.com'
             }
         ),
         (
@@ -302,9 +319,8 @@ def test_sorted_links_redis():
             {
                 b'init date': b'2014-01-27T17:57:19.985742+00:00',
                 b'priority': b'5',
-                b'description': b'OS benchmarkin',
-                b'name': b'http://phoronix.com',
-                b'update date': b'None'
+                b'description': b'OS benchmarking',
+                b'name': b'http://phoronix.com'
             }
         ),
         (
@@ -314,7 +330,8 @@ def test_sorted_links_redis():
                 b'priority': b'2',
                 b'description': b'A webcomic of ...',
                 b'name': b'http://xkcd.com',
-                b'update date': b'2014-02-07T17:37:19.985742+00:00'
+                b'update date': b'2014-02-07T17:37:19.985742+00:00',
+                b'author': b'Author name'
             }
         )
     ])

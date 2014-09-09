@@ -16,7 +16,7 @@ def test(v=False):
     verbose = ''
     if v:
         verbose = ' -vv'
-    run('py.test%s linkmanager/tests/tests.py --cov=linkmanager --cov-report term-missing' % verbose)
+    run('py.test%s -s linkmanager/tests/tests.py --cov=linkmanager --cov-report term-missing' % verbose)
 
 
 @task

@@ -47,7 +47,7 @@ class URLValidator(RegexValidator):
         r'(?::\d+)?'
         r'(?:/?|[/?]\S+)$', re.IGNORECASE
     )
-    message = 'Enter a valid URL:'
+    message = 'Enter a valid URL: '
     schemes = ['http', 'https']
 
     def __init__(self, schemes=None, **kwargs):

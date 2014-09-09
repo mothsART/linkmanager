@@ -1,14 +1,30 @@
 import os
 import subprocess
+import json
 
-from flask import Flask
-from flask import render_template
-from flask import request
-from flask import jsonify
+import arrow
+
+from flask import (
+    Flask, render_template, abort,
+    request, jsonify
+)
+from flask.ext.assets import Environment
+#from werkzeug.debug import get_current_traceback
+
 from linkmanager import settings
 from linkmanager.db import DataBase
 
 app = Flask(__name__)
+assets = Environment(app)
+
+
+# Decorator : get an Unauthorize 403 when read only's settings is True
+def read_only(func):
+    def wrapper():
+        if settings.READ_ONLY:
+            return abort(403)
+        return func()
+    return wrapper
 
 
 def launch_browser(BROWSER=False):
@@ -24,29 +40,109 @@ def launch_browser(BROWSER=False):
 
 @app.route("/")
 def index():
-    return render_template('index.html')
+    db = DataBase()
+    return render_template(
+        'index.html',
+        DEBUG=settings.DEBUG,
+        read_only=settings.READ_ONLY,
+        nb_links=len(db)
+    )
+    # try:
+    #     error
+    # except Exception:
+    #     track = get_current_traceback(
+    #         skip=1, show_hidden_frames=True,
+    #         ignore_system_exceptions=False
+    #     )
+    #     track.log()
+    #     abort(500)
 
 
-@app.route("/search", methods=['POST'])
+@app.route("/editmode", methods=['GET', 'POST'])
+@read_only
+def editmode():
+    if request.method == 'GET':
+        return jsonify({'editmode': True})
+    editmode = not json.loads(request.form['editmode'])
+    return jsonify({'editmode': editmode})
+
+
+@read_only
+@app.route("/add", methods=['POST'])
+def add():
+    db = DataBase()
+    fixture = {}
+    link = request.form['link']
+    fixture[link] = {
+        "tags": request.form['tags'].split(),
+        "priority": request.form['priority'],
+        "description": request.form['description'],
+        "title": request.form['title'],
+        "init date": str(arrow.now())
+    }
+    result = db.add_link(json.dumps(fixture))
+    return jsonify({'is_add': result})
+
+
+@read_only
+@app.route("/update", methods=['POST'])
+def update():
+    db = DataBase()
+    fixture = {}
+    link = request.form['link']
+    if request.form['link'] != request.form['newlink']:
+        result = db.delete_link(request.form['link'])
+        if not result:
+            return jsonify({'is_update': False})
+        link = request.form['newlink']
+    old_link = db.get_link_properties(link)
+    fixture[link] = {
+        "tags": request.form['tags'].split(),
+        "priority": request.form['priority'],
+        "description": request.form['description'],
+        "title": request.form['title'],
+        "init date": old_link['init date'],
+        "update date": str(arrow.now())
+    }
+    if request.form['link'] != request.form['newlink']:
+        fixture[link]["init date"] = str(arrow.now())
+        fixture[link]["update date"] = old_link['update date']
+
+    result = db.add_link(json.dumps(fixture))
+    return jsonify({'is_update': result})
+
+
+@read_only
+@app.route("/delete", methods=['POST'])
+def delete():
+    db = DataBase()
+    result = db.delete_link(request.form['link'])
+    return jsonify({'is_delete': result})
+
+
+@app.route("/search")
 def search():
-    try:
-        tags = next(request.form.items())[0].split()
-    except:
-        return jsonify({})
     results = {}
     db = DataBase()
-    links = db.sorted_links(*tags)
+    try:
+        tags = next(request.args.items())[0].split()
+        links = db.sorted_links(*tags)
+    except:
+        links = db.sorted_links()
+
     results = {}
     for l in links:
         properties = db.get_link_properties(l)
         results[l] = properties
-
     return jsonify(**results)
 
 
 @app.route("/suggest")
 def suggest():
-    keywords = request.args.get('tags').split()
+    tags = request.args.get('tags')
+    if not tags:
+        return jsonify({})
+    keywords = tags.split()
     last_keyword = keywords[len(keywords) - 1]
     str_suggestion = ' '.join(keywords[:-1])
     d = DataBase()

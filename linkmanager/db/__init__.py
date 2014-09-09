@@ -1,14 +1,19 @@
-import redis
+import os
 import json
 import uuid
-
+import datetime
+import logging
 from collections import OrderedDict
 
-import datetime
+import requests
 from requests_futures.sessions import FuturesSession
 from bs4 import BeautifulSoup
+from clint.textui.colored import white, yellow
 
 from linkmanager import settings
+from linkmanager.translation import gettext as _
+
+logger = logging.getLogger()
 
 
 class MixinDb(object):
@@ -18,9 +23,57 @@ class MixinDb(object):
     db_nb = settings.DB['DB_NB']
     properties = False
 
-    def load(self, fixture):
+    def load(self, json_files=None):
         """ Load a string : json format """
-        fixture = json.loads(fixture)
+        if not json_files:
+            print(white(
+                _("No file to load."),
+                bold=True, bg_color='red'
+            ))
+            return False
+
+        links = {}
+        errors = []
+        for json_file in json_files:
+            with open(json_file) as f:
+                fixture = json.loads(f.read())
+            for link in fixture:
+                if link in links:
+                    if links[link] == fixture[link]:
+                        continue
+                    errors.append(
+                        yellow(
+                            _(
+                                'Duplicate error '
+                                + '(same link with different properties) :'
+                            ),
+                            bold=True, bg_color='red'
+                        )
+                        + ' ' + link
+                    )
+                if 'author' not in fixture[link]:
+                    fixture[link]['author'] = ''
+                if (
+                    type(fixture[link]['tags']) != list
+                    or fixture[link]['tags'] == []
+                ):
+                    errors.append(
+                        yellow(
+                            _(
+                                'No affiliate tags :'
+                            ),
+                            bold=True, bg_color='red'
+                        )
+                        + ' ' + link
+                    )
+                links[link] = fixture[link]
+        if errors != []:
+            for e in set(errors):
+                logger.error(e)
+            return False
+
+        # json.dumps(links)
+        # fixture = json.loads(fixture)
         # start_time = datetime.datetime.now()
         # session = FuturesSession(max_workers=settings.WORKERS)
 
@@ -48,7 +101,7 @@ class MixinDb(object):
 
         # elsapsed_time = datetime.datetime.now() - start_time
         # print("Elapsed time: %ss" % elsapsed_time.total_seconds())
-        return self._add_links(fixture)
+        return self._add_links(links)
 
 
 class RedisDb(MixinDb):
@@ -56,32 +109,58 @@ class RedisDb(MixinDb):
 
     def __init__(self, test=False):
         """ Create a Redis DataBase """
+
         if test:
-            self.db_nb = settings.DB['TEST_DB_NB']
-        self._db = redis.StrictRedis(
-            host=self.host,
-            port=self.port,
-            db=self.db_nb
-        )
+            import fakeredis
+            self._db = fakeredis.FakeStrictRedis(
+                host=self.host,
+                port=self.port,
+                db=self.db_nb
+            )
+        else:
+            import redis
+            self._db = redis.StrictRedis(
+                host=self.host,
+                port=self.port,
+                db=self.db_nb
+            )
+
+    def __len__(self):
+        """ Get nb of all stored links """
+        return self._db.hlen('links_uuid')
 
     def _add_links(self, fixture):
         " Add links on Database"
+        fixture = OrderedDict(sorted(fixture.items(), key=lambda t: t[0]))
 
-        for link in fixture:
-            value = fixture[link]
+        for real_link in fixture:
+            value = fixture[real_link]
+            ### Minimize URL if necessite
+            link = real_link
+            if 'name' in value:
+                link = value['name']
+            if (
+                settings.MINIMIZE_URL and link == real_link
+                and len(real_link) > settings.MINIMIZER_MIN_SIZE
+            ):
+                try:
+                    result = requests.get(settings.MINIMIZER + link)
+                    link = result.content
+                except requests.exceptions.ConnectionError:
+                    pass
 
             if self._db.hexists('links_uuid', link):
                 l_uuid = self._db.hget('links_uuid', link)
                 # give a list of tags to removed on updating :
                 # calculate difference between existing tags and new tags
-                tags = set(self.tags(l_uuid)) - set(value['tags'])
+                tags = set(self.tags(l_uuid.decode())) - set(value['tags'])
                 for tag in tags:
                     if self._db.scard(tag) == 1:
                         # Delete Tag if this link is the only reference
                         self._db.delete(tag)
                     else:
                         # Delete link refered by tag
-                        self._db.srem(tag, l_uuid)
+                        self._db.srem(tag, l_uuid.decode())
             else:
                 l_uuid = str(uuid.uuid4())
                 self._db.hset('links_uuid', link, l_uuid)
@@ -90,38 +169,56 @@ class RedisDb(MixinDb):
                 for inc in range(len(tag)):
                     self._db.zadd(':compl', 0, tag[:inc])
                 self._db.zadd(':compl', 0, tag + '*')
+                if type(l_uuid) != str:
+                    l_uuid = l_uuid.decode()
                 self._db.sadd(tag, l_uuid)
 
-            title = ''
-            if 'title' in value:
-                title = value['title']
+            properties = {
+                'name': link,
+                'priority': value['priority'],
+                'init date': value['init date'],
+            }
+            if link != real_link:
+                properties['real_link'] = real_link
 
-            self._db.hmset(
-                l_uuid,
-                {
-                    'title': title,
-                    'name': link,
-                    'real link': link,
-                    'priority': value['priority'],
-                    'description': value['description'],
-                    'init date': value['init date'],
-                    'update date': value['update date']
-                }
-            )
+            if 'title' in value:
+                properties['title'] = value['title']
+
+            if 'update date' in value:
+                if value['update date']:
+                    properties['update date'] = value['update date']
+
+            if 'description' in value:
+                properties['description'] = value['description']
+
+            author = os.getenv('USER')
+            if hasattr(settings, 'AUTHOR'):
+                author = settings.AUTHOR
+            if 'author' in value:
+                author = value['author']
+            if author:
+                properties['author'] = author
+            self._db.hmset(l_uuid, properties)
         return True
 
     def get_link_properties(self, link):
         " Return all properties correspond to a link"
         properties = {}
         l_uuid = self._db.hget('links_uuid', link)
-        properties['tags'] = self.tags(l_uuid)
+        properties['tags'] = self.tags(l_uuid.decode())
         p = self._db.hgetall(l_uuid)
-        properties['real link'] = p[b"real link"].decode()
-        properties['title'] = p[b"title"].decode()
+        if b'real_link' in p:
+            properties['real_link'] = p[b"real_link"].decode()
+        if b'title' in p:
+            properties['title'] = p[b"title"].decode()
+        if b'author' in p:
+            properties['author'] = p[b"author"].decode()
         properties['priority'] = p[b"priority"].decode()
-        properties['description'] = p[b"description"].decode()
-        properties['init_date'] = p[b"init date"].decode()
-        properties['update_date'] = p[b"update date"].decode()
+        if b'description' in p:
+            properties['description'] = p[b"description"].decode()
+        properties['init date'] = p[b"init date"].decode()
+        if b'update date' in p:
+            properties['update date'] = p[b"update date"].decode()
         properties['l_uuid'] = l_uuid.decode()
         return properties
 
@@ -180,22 +277,16 @@ class RedisDb(MixinDb):
         fixture = json.loads(fixture)
         return self._add_links(fixture)
 
-    def update_link(self, fixture):
-        " Update one link on Database"
-        fixture = json.loads(fixture)
-        return self._add_links(fixture)
-
     def delete_link(self, link):
         " Delete a link on Database"
-        l_uuid = self._db.hget('links_uuid', link)
+        l_uuid = self._db.hget('links_uuid', link).decode()
 
         for tag in self.tags(l_uuid):
             if self._db.scard(tag) == 1:
                 # Delete Tag if this link is the only reference
                 self._db.delete(tag)
-            else:
-                # Delete link refered by tag
-                self._db.srem(tag, l_uuid)
+            # Delete link refered by tag
+            self._db.srem(tag, l_uuid)
 
         self._db.hdel('links_uuid', link)
         self._db.delete(l_uuid)
@@ -248,15 +339,20 @@ class RedisDb(MixinDb):
             l = self._db.hgetall(str_link)
             links[l[b'name'].decode()] = {}
             link = links[l[b'name'].decode()]
-
             link['tags'] = self.tags(str_link)
             p = self._db.hgetall(str_link)
-            link['real link'] = p[b"real link"].decode()
-            link['title'] = p[b"title"].decode()
+            if b"real_link" in p:
+                link['real_link'] = p[b"real_link"].decode()
+            if b'title' in p:
+                if p[b"title"].decode() != '':
+                    link['title'] = p[b"title"].decode()
+            if b"author" in p:
+                link['author'] = p[b"author"].decode()
             link['priority'] = p[b"priority"].decode()
             link['description'] = p[b"description"].decode()
-            link['init_date'] = p[b"init date"].decode()
-            link['update_date'] = p[b"update date"].decode()
+            link['init date'] = p[b"init date"].decode()
+            if b"update date" in p:
+                link['update date'] = p[b"update date"].decode()
         return json.dumps(
             links, sort_keys=True, indent=4
         )

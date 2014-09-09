@@ -9,5 +9,5 @@ VERSION = tuple(map(int, __version__.split('.')))
 
 
 def interface():
-    from .tty import TTYInterface # NOQA
+    from .tty import TTYInterface
     return TTYInterface()

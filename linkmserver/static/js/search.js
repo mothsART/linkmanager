@@ -1,8 +1,10 @@
+var nb_links;
 var search_links;
+var search_tags = '';
 var initial_links = [];
 initial_links.push({
-    'title': '', 'url': '',
-    'tags': '',
+    'title': '', 'url': '', 'real_url': '',
+    'tags': '', 'author': '',
     'priority': 1, 'description': ''
 });
 var links_status = [];
@@ -12,92 +14,50 @@ links_status.push({
 });
 var new_links = JSON.parse(JSON.stringify(initial_links));
 
-$("#add-widget input, #add-widget textarea").bind('input', function(){
-    adapt_form(input=this, add=true);
-});
-$(".tagit").tagit({
-    // Options
-    fieldName: "tags",
-    availableTags: suggest_callback,
-    autocomplete: {delay: 0, minLength: 1},
-    showAutocompleteOnFocus: false,
-    removeConfirmation: false,
-    caseSensitive: true,
-    allowDuplicates: false,
-    allowSpaces: false,
-    readOnly: false,
-    tagLimit: null,
-    singleField: false,
-    singleFieldDelimiter: ',',
-    singleFieldNode: null,
-    tabIndex: null,
-    placeholderText: null,
-    afterTagAdded: function(evt, ui){
-        tag_update(evt, ui, remove=false, add=true);
-    },
-    beforeTagRemoved: function(evt, ui){
-        tag_update(evt, ui, remove=true, add=true);
-    },
-});
-// URL identifier
-// see https://gist.github.com/dperini/729294 and http://mathiasbynens.be/demo/url-regex
-// same as http://bootstrapvalidator.com
-var re_weburl = new RegExp(
-  "^" +
-    // protocol identifier
-    "(?:(?:https?|ftp)://)" +
-    // user:pass authentication
-    "(?:\\S+(?::\\S*)?@)?" +
-    "(?:" +
-      // IP address exclusion
-      // private & local networks
-      "(?!(?:10|127)(?:\\.\\d{1,3}){3})" +
-      "(?!(?:169\\.254|192\\.168)(?:\\.\\d{1,3}){2})" +
-      "(?!172\\.(?:1[6-9]|2\\d|3[0-1])(?:\\.\\d{1,3}){2})" +
-      // IP address dotted notation octets
-      // excludes loopback network 0.0.0.0
-      // excludes reserved space >= 224.0.0.0
-      // excludes network & broacast addresses
-      // (first & last IP address of each class)
-      "(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])" +
-      "(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}" +
-      "(?:\\.(?:[1-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))" +
-    "|" +
-      // host name
-      "(?:(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)" +
-      // domain name
-      "(?:\\.(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)*" +
-      // TLD identifier
-      "(?:\\.(?:[a-z\\u00a1-\\uffff]{2,}))" +
-    ")" +
-    // port number
-    "(?::\\d{2,5})?" +
-    // resource path
-    "(?:/\\S*)?" +
-  "$", "i"
-);
-
-// find key by value on an associate array
-function findKey(obj, value){
-  var key;
-  _.each(obj, function (v, k){
-    if (v === value){
-      key = k;
-    }
-  });
-  return key;
+function add_widget_event(){
+    $("#add-widget input, #add-widget textarea").bind('input', function(){
+        adapt_form(input=this, add=true);
+    });
+    $("#add-widget .tagit").tagit({
+        // Options
+        fieldName: "tags",
+        availableTags: suggest_callback,
+        autocomplete: {delay: 0, minLength: 1},
+        showAutocompleteOnFocus: false,
+        removeConfirmation: false,
+        caseSensitive: true,
+        allowDuplicates: false,
+        allowSpaces: false,
+        readOnly: false,
+        tagLimit: null,
+        singleField: false,
+        singleFieldDelimiter: ',',
+        singleFieldNode: null,
+        tabIndex: null,
+        placeholderText: null,
+        afterTagAdded: function(evt, ui){
+            tag_update(evt, ui, remove=false, add=true);
+        },
+        beforeTagRemoved: function(evt, ui){
+            tag_update(evt, ui, remove=true, add=true);
+        },
+    });
 }
+var original_add_widget = $('#add-widget').clone();
+add_widget_event();
 
 // GET Edit mode
-$.ajax({
-    url: '/editmode',
-    type: "GET",
-    dataType: "json",
-}).done(function(value){
-    if(value['editmode'] == true){
-        $('#editmode').addClass('active');
-    }
-});
+if ($("#editmode").length){
+    $.ajax({
+        url: '/editmode',
+        type: "GET",
+        dataType: "json",
+    }).done(function(value){
+        if(value['editmode'] == true){
+            $('#editmode').addClass('active');
+        }
+    });
+}
 
 // Change Edit Mode
 $("#editmode").click(function(){
@@ -134,8 +94,24 @@ function add_widget(){
 }
 
 // Add a link
-function add(button, link){
-    console.log('add');
+function add_link(){
+    new_link = new_links[0];
+    $.post(
+        "/add",
+        {
+            link: new_link['url'],
+            title: new_link['title'],
+            newlink: new_link['url'],
+            priority: new_link['priority'],
+            tags: new_link['tags'].join(' '),
+            description: new_link['description']
+        }
+    ).done(function(value){
+        if(search_tags == new_link['tags'].join(' ')){
+            get_links();
+            console.log($('#nb-links strong').val());
+        }
+    }, "json");
 }
 
 // Delete a link
@@ -149,7 +125,8 @@ function del(button, link){
         initial_links.splice(result_index, 1);
         links_status.splice(result_index, 1);
         new_links.splice(result_index, 1);
-        show_links(_.clone(initial_links));
+        show_links(_.clone(_.rest(initial_links)));
+        $('#nb-links strong:first').text(nb_links - 1);
     }, "json");
 }
 
@@ -174,7 +151,7 @@ function update(button, link){
             'priority': null, 'description': null
         }
         initial_links[result_index] = _.clone(new_links[result_index]);
-        show_links(_.clone(initial_links));
+        show_links(_.clone(_.rest(initial_links)));
         table = $($($(
             '#link_nb_' + parseInt(result_index + 1)
         )[0].childNodes[1])[0].firstChild).after(
@@ -193,7 +170,6 @@ function update(button, link){
 // Reset : give initial link values
 function reset(button, add){
     table_tr = $(button).parents().eq(5);
-    console.log(add);
     if(add == true){
         result_index = 0;
     }
@@ -205,7 +181,14 @@ function reset(button, add){
         'title': null, 'url': null, 'tags': null,
         'priority': null, 'description': null
     }
-    show_links(_.clone(_.rest(new_links)));
+    if(result_index == 0) {
+        $('#add-widget').replaceWith(original_add_widget.clone());
+        $('#add-widget').removeClass('hidden');
+        add_widget_event();
+    }
+    else{
+        show_links(_.clone(_.rest(new_links)));
+    }
 }
 
 // Show Links : with edit mode or not
@@ -215,7 +198,7 @@ function show_links(links){
     // remove last searching results
     $("#search-list").remove();
     var len = _.size(links);
-    var inc = 0;
+    var inc = 1;
     _.each(_.range(len), function(l) {
         var url;
         link = _.min(links, function(l){
@@ -299,9 +282,11 @@ function show_links(links){
             tr += '</button></td></tr>';
         }
         else {
-            $('#add-widget').addClass('hidden');
             tr += '<a href="<%= link %>"><%= title %></a>';
-            tr += '<ul><li>Ordre de priorité : <strong><%= priority %></strong></li>';
+            if(url != link.real_url){
+                tr += '<ul><li>Real URL : <strong><%= real_url %></strong></li>';
+            }
+            tr += '<li>Priority order : <strong><%= priority %></strong></li>';
             tr += '<li><span>Tags :</span><ul class="readonly tagit">' + tags + '</ul></li>';
             tr += '<li>Description : <strong><%= description %></strong></li></ul>';
             if(title == '') {
@@ -310,14 +295,14 @@ function show_links(links){
         }
         html = _.template(
             tr, {
-                nb: l + 1,
-                link: url, title: title,
+                nb: l + 1, title: title,
+                link: url, real_url: link.real_url,
                 priority: link.priority,
                 description: link.description
             }
         )
         items.push(html);
-        delete links[inc];
+        delete links[inc - 1];
         inc += 1;
     });
     //nb of results
@@ -337,6 +322,11 @@ function show_links(links){
         $('#searchbar-sucess').addClass('has-success');
         $('.has-feedback .form-control-feedback').css('z-index', 3);
     }
+    if(edit == false) {
+        $('#add-widget').addClass('hidden');
+    }
+    // no results : don't show legend
+    if(len == 0){return};
     // Results
     edit_class = '';
     $('#legend').addClass('hidden');
@@ -501,8 +491,19 @@ function show_buttons(tr, result_index){
     if (_.contains(link_values, false)){
         tr.removeClass('hidden');
         submit_button.addClass('hidden');
+        return;
     }
-    console.log(link_values);
+    if(
+        result_index == 0
+    ){
+        submit_button.addClass('hidden');
+        if(
+            new_links[result_index]['url'] != ''
+            && new_links[result_index]['tags'] != ''
+        ){
+            submit_button.removeClass('hidden');
+        }
+    }
 }
 
 function tag_update(evt, ui, remove, add){
@@ -528,9 +529,6 @@ function tag_update(evt, ui, remove, add){
     if (remove == true){
         tags = _.reject(tags, function(tag){ return tag == tag_concern ||  tag == 'No search results.'; });
     }
-    console.log(add);
-    console.log(result_index);
-    console.log(tags);
     inter = _.intersection(initial_links[result_index]['tags'], tags);
     var tag_up = $(ul_tagit.parent()[0].firstChild);
     links_status[result_index]['tags'] = null;
@@ -563,24 +561,26 @@ function tag_update(evt, ui, remove, add){
     show_buttons($(tr), result_index);
 }
 
-// Search Links
-$('#searchform').bind('submit', function(event) {
-    var link = $(this).attr('action');
-
+function get_links(){
+    var link = $('#searchform').attr('action');
+    search_tags = $('.ui-autocomplete-input').val();
     $.ajax({
         url: link,
-        data: $('.ui-autocomplete-input').val(),
+        data: search_tags,
         dataType: "json",
         // beforeSend: function(){
         //       $('#loading').show();
         //     },
         // }
     }).done(function(links) {
-        console.log(initial_links);
+        $('#nb-results').removeClass('hidden');
+        add_link_status = _.clone(links_status[0]);
+        links_status = [];
+        links_status.push(add_link_status);
         initial_links = [];
         initial_links.push({
-            'title': '', 'url': '',
-            'tags': '',
+            'title': '', 'url': '', 'real_url': '',
+            'tags': '', 'author': '',
             'priority': 1, 'description': ''
         });
         new_links = [];
@@ -592,8 +592,8 @@ $('#searchform').bind('submit', function(event) {
             });
             url = findKey(search_links, link);
             initial_links.push({
-                'title': link.title, 'url': url,
-                'tags': link.tags,
+                'title': link.title, 'url': url, 'real_url': link.real_link,
+                'tags': link.tags, 'author': link.author,
                 'priority': link.priority, 'description': link.description
             });
             links_status.push({
@@ -607,7 +607,10 @@ $('#searchform').bind('submit', function(event) {
         show_links(_.clone(_.rest(initial_links)));
     });
     return false;
-});
+}
+
+// Search Links
+$('#searchform').bind('submit', get_links);
 
 
 // AutoSuggestion
@@ -680,4 +683,8 @@ $("#myTags").tagit({
     singleFieldNode: null,
     tabIndex: null,
     placeholderText: null,
+});
+
+$(window).ready(function(){
+    nb_links = parseInt($('#nb-links strong:first').text());
 });

@@ -1,2 +1,3 @@
 linkmanager/* usr/lib/python3/dist-packages/linkmanager
+linkmanager.conf /etc
 linkmanager.zsh /etc/bin
