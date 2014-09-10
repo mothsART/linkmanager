@@ -103,12 +103,12 @@ def test_no_result_redis():
 
 def test_one_result_redis():
     # One result with multi-tags
-    links = [x for x in r.get_links('linux', 'shell')]
-    is_in_uuid = links[0] in uuids
+    link = [x for x in r.get_links('linux', 'shell')][0].decode()
+    is_in_uuid = link in uuids
     assert is_in_uuid is True
     # One result with one tag
-    links = [x for x in r.get_links('shell')]
-    is_in_uuid = links[0] in uuids
+    link = [x for x in r.get_links('shell')][0].decode()
+    is_in_uuid = link in uuids
     assert is_in_uuid is True
 
 
