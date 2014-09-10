@@ -1,12 +1,12 @@
 -r base.txt
-cov-core==1.7
+cov-core==1.14.0
 coverage==3.7.1
--e git+git@github.com:mothsART/fakeredis.git@9519dac2bac36e1e4c36f7088bdbcea01edb7dbc#egg=fakeredis-origin/HEAD
+-e git+https://git@github.com/mothsART/fakeredis.git@9519dac2bac36e1e4c36f7088bdbcea01edb7dbc#egg=fakeredis
 flake8==2.1.0
 invoke==0.7.0
 mccabe==0.2.1
 pep8==1.4.6
-pytest==2.5.1
-pytest-cov==1.6
+pytest==2.6.2
+pytest-cov==1.8.0
 pyflakes==0.7.3
 tox==1.7.0

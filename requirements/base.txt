@@ -2,7 +2,7 @@ argcomplete==0.8.0
 arrow==0.4.2
 -e git+https://git@github.com/mothsART/clint.git@v0.4#egg=clint-0.4
 path.py==5.1
-py==1.4.20
+py==1.4.24
 python-dateutil==2.2
 redis==2.9.1
 requests==2.2.1
