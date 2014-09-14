@@ -1,7 +1,7 @@
 import os
 import json
 import uuid
-import datetime
+# import datetime
 import logging
 from collections import OrderedDict
 
@@ -24,7 +24,7 @@ class MixinDb(object):
     db_nb = settings.DB['DB_NB']
     properties = False
 
-    def load(self, json_files=None, ):
+    def load(self, json_files=None, update_titles=True):
         """ Load a string : json format """
         if not json_files:
             print(white(
@@ -72,6 +72,9 @@ class MixinDb(object):
             for e in set(errors):
                 logger.error(e)
             return False
+
+        if not update_titles:
+            return self._add_links(links)
 
         # start_time = datetime.datetime.now()
         bar = progress.bar(range(len(links)))
@@ -138,7 +141,7 @@ class RedisDb(MixinDb):
 
         for real_link in fixture:
             value = fixture[real_link]
-            ### Minimize URL if necessite
+            # -- Minimize URL if necessite
             link = real_link
             if 'name' in value:
                 link = value['name']
@@ -234,7 +237,7 @@ class RedisDb(MixinDb):
         if not rank:
             return []
         compl = self._db.zrange(':compl', rank, rank + rangelen - 1)
-        ###TODO : perform scalability
+        # -- TODO : perform scalability
         # 2 algos for little and big database
         # alphabet = 'abcdefghijklmnopqrstuvwxyz'
         # b_value = ''

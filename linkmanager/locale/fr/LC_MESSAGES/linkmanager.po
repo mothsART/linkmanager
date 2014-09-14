@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-04-14 12:46+0200\n"
+"POT-Creation-Date: 2014-09-14 21:06+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,136 +18,225 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: get_interface.py:33 linkmanager/__init__.py:215 linkmanager/tty.py:205
-#: linkmanager/tty.py:205
+#: linkmanager/tty.py:286 linkmanager/tty.py:285 linkmanager/tty.py:285
 msgid "Database entirely flushed."
 msgstr "Base de données vidée."
 
-#: linkm.py:14 linkm:27 linkm:27
+#: linkm.py:14 linkm:27 linkm:41 linkm:41
 msgid "add links"
 msgstr "ajouter une URL"
 
-#: linkm:28 linkm:28
+#: linkm:28 linkm:43 linkm:43
 msgid "update links"
 msgstr "mettre à jour une URL"
 
-#: linkm.py:16 linkm:29 linkm:29
+#: linkm.py:16 linkm:29 linkm:44 linkm:44
 msgid "remove links"
 msgstr "supprimer une URL"
 
-#: linkm:32 linkm:32
+#: linkm:32 linkm:47 linkm:47
 msgid "flush the entire database"
 msgstr "vider la base de données au complet"
 
-#: linkm:34 linkm:34
+#: linkm:34 linkm:49 linkm:49
 msgid "load a json database file"
 msgstr "charger une base de données au format Json"
 
-#: linkm:37 linkm:37
+#: linkm:37 linkm:52 linkm:52
 msgid "dump all database to a json file"
 msgstr "sérialiser une base de données au format Json"
 
-#: linkm:41 linkm:41
+#: linkm:41 linkm:56 linkm:56
 msgid "search links on database"
 msgstr "chercher un lien dans la base de données"
 
-#: linkm:68 linkm:68
+#: linkm:68 linkm:84 linkm:84
 msgid "Choices supports the following: (short cmd/cmd)"
 msgstr "Prend en charge : (commande abrégé / commande)"
 
-#: linkm:88 linkm:88
+#: linkm:88 linkm:110 linkm:110
 msgid "Manage your Links ..."
 msgstr "Trier vos Urls ..."
 
-#: linkm:95 linkm:95
+#: linkm:95 linkm:118 linkm:118
 msgid "force command to be quiet and without input"
 msgstr "force la commande à être silencieuse"
 
-#: linkm:120 linkm:120
+#: linkm:120 linkm:145 linkm:145
 msgid "Ctrl + C interruption"
 msgstr "interruption avec Ctrl + C"
 
-#: linkmanager/__init__.py:45 linkmanager/tty.py:39 linkmanager/tty.py:39
+#: linkmanager/__init__.py:45 linkmanager/tty.py:39 linkmanager/tty.py:51
+#: linkmanager/tty.py:50 linkmanager/tty.py:50
 #, python-format
 msgid "%s properties"
 msgstr "propriétés de %s"
 
-#: linkmanager/__init__.py:53 linkmanager/tty.py:47 linkmanager/tty.py:47
+#: linkmanager/__init__.py:53 linkmanager/tty.py:47
 msgid "tags (separate with spaces)"
 msgstr "étiquettes (séparés par des espaces)"
 
-#: linkmanager/__init__.py:66 linkmanager/tty.py:60 linkmanager/tty.py:60
+#: linkmanager/__init__.py:66 linkmanager/tty.py:60 linkmanager/tty.py:101
+#: linkmanager/tty.py:100 linkmanager/tty.py:100
 msgid "priority value (integer value between 1 and 10)"
 msgstr "poid donné à une URL (valeur entière entre 1 et 10)"
 
-#: linkmanager/__init__.py:84 linkmanager/tty.py:78 linkmanager/tty.py:78
+#: linkmanager/__init__.py:84 linkmanager/tty.py:78 linkmanager/tty.py:117
+#: linkmanager/tty.py:116 linkmanager/tty.py:116
 msgid "priority value not range between 1 and 10, retry"
 msgstr "la valeur de poid saisie n'est pas comprise entre 1 et 10, réessayez"
 
-#: linkmanager/__init__.py:93 linkmanager/tty.py:87 linkmanager/tty.py:87
+#: linkmanager/__init__.py:93 linkmanager/tty.py:87 linkmanager/tty.py:128
+#: linkmanager/tty.py:127 linkmanager/tty.py:127
 msgid "give a description"
 msgstr "écrivez une description"
 
-#: linkmanager/__init__.py:103 linkmanager/tty.py:96 linkmanager/tty.py:96
+#: linkmanager/__init__.py:103 linkmanager/tty.py:96 linkmanager/tty.py:155
+#: linkmanager/tty.py:154 linkmanager/tty.py:154
 msgid "Give one or several links (separate with spaces)"
 msgstr "saisissez 1 ou plusieurs URL (séparés par des espaces)"
 
-#: linkmanager/__init__.py:122 linkmanager/tty.py:114 linkmanager/tty.py:114
+#: linkmanager/__init__.py:122 linkmanager/tty.py:114 linkmanager/tty.py:180
+#: linkmanager/tty.py:179 linkmanager/tty.py:179
 #, python-format
 msgid "the link \"%s\" already exist: do you want to update [Y/n] ?"
 msgstr ""
-"ce lien \"%s\" existe déjà : vous-les vous éditer les propriétés rattachés"
-" [O/n] ?"
+"ce lien \"%s\" existe déjà : vous-les vous éditer les propriétés rattachés "
+"[O/n] ?"
 
-#: linkmanager/__init__.py:156 linkmanager/tty.py:147 linkmanager/tty.py:147
+#: linkmanager/__init__.py:156 linkmanager/tty.py:147 linkmanager/tty.py:227
+#: linkmanager/tty.py:226 linkmanager/tty.py:226
 #, python-format
 msgid "the link \"%s\" does not exist: do you want to create [Y/n] ?"
 msgstr "ce lien \"%s\" n'existe pas : désirez-vous le créer [O/n] ?"
 
-#: linkmanager/__init__.py:187 linkmanager/tty.py:177 linkmanager/tty.py:177
+#: linkmanager/__init__.py:187 linkmanager/tty.py:177 linkmanager/tty.py:257
+#: linkmanager/tty.py:256 linkmanager/tty.py:256
 #, python-format
 msgid "the link \"%s\" does not exist."
 msgstr "Ce lien \"%s\" n'existe pas."
 
-#: linkmanager/__init__.py:193 linkmanager/tty.py:183 linkmanager/tty.py:183
+#: linkmanager/__init__.py:193 linkmanager/tty.py:183 linkmanager/tty.py:263
+#: linkmanager/tty.py:262 linkmanager/tty.py:262
 #, python-format
 msgid "the link \"%s\" has been deleted."
 msgstr "ce lien \"%s\" a été supprimé."
 
 #: linkmanager/__init__.py:226 linkmanager/tty.py:214 linkmanager/tty.py:215
-#: linkmanager/tty.py:215
+#: linkmanager/db/__init__.py:30 linkmanager/db/__init__.py:29
+#: linkmanager/db/__init__.py:29
 msgid "No file to load."
 msgstr "Aucun fichier a charger."
 
 #: linkmanager/__init__.py:250 linkmanager/tty.py:236 linkmanager/tty.py:237
-#: linkmanager/tty.py:237
+#: linkmanager/tty.py:311 linkmanager/tty.py:310 linkmanager/tty.py:310
 msgid "No links founded"
 msgstr "Aucun liens trouvés"
 
-#: linkmanager/__init__.py:257 linkmanager/tty.py:244 linkmanager/tty.py:244
+#: linkmanager/__init__.py:257 linkmanager/tty.py:244 linkmanager/tty.py:318
+#: linkmanager/tty.py:317 linkmanager/tty.py:317
 #, python-format
 msgid "%s links totally founded"
 msgstr "%s liens au total trouvés"
 
 #: linkmanager/__init__.py:263 linkmanager/tty.py:249 linkmanager/tty.py:250
-#: linkmanager/tty.py:250
+#: linkmanager/tty.py:324 linkmanager/tty.py:323 linkmanager/tty.py:323
 #, python-format
 msgid "%s links founded"
 msgstr "%s liens trouvés"
 
-#: linkm:99 linkm:99
+#: linkm:99 linkm:42 linkm:42
 msgid "show linkmanager version"
 msgstr "afficher la version de linkmanager"
 
 #: linkmanager/tty.py:120 linkmanager/tty.py:153 linkmanager/tty.py:201
-#: linkmanager/tty.py:202 linkmanager/tty.py:120 linkmanager/tty.py:153
-#: linkmanager/tty.py:202
+#: linkmanager/tty.py:202 linkmanager/tty.py:187 linkmanager/tty.py:234
+#: linkmanager/tty.py:272 linkmanager/tty.py:283 linkmanager/tty.py:186
+#: linkmanager/tty.py:233 linkmanager/tty.py:271 linkmanager/tty.py:282
+#: linkmanager/tty.py:186 linkmanager/tty.py:233 linkmanager/tty.py:271
+#: linkmanager/tty.py:282
 msgid "Y"
 msgstr "O"
 
-#: linkmanager/tty.py:196 linkmanager/tty.py:196
+#: linkmanager/tty.py:196 linkmanager/tty.py:276 linkmanager/tty.py:275
+#: linkmanager/tty.py:275
 msgid "You're about to empty the entire Database."
 msgstr "Vous êtes sur le point de vider la Base de données."
 
-#: linkmanager/tty.py:198 linkmanager/tty.py:198
+#: linkmanager/tty.py:198 linkmanager/tty.py:278 linkmanager/tty.py:277
+#: linkmanager/tty.py:277
 msgid "Are you sure [Y/n] ?"
 msgstr "En êtes-vous bien sur [O/n] ?"
+
+#: linkm:58 linkm:58
+msgid "launch a webservice"
+msgstr "lancer un service web"
+
+#: linkm:122 linkm:122
+msgid "verbose option"
+msgstr "mode verbeux"
+
+#: linkmanager/settings.py:61 linkmanager/settings.py:61
+msgid "WARNING! {path} : bad value on \"{name}\" (Default: {value})"
+msgstr ""
+"AVERTISSEMENT! {path} : Valeur indésirable sur \"{name}\" (par défaut : "
+"{value})"
+
+#: linkmanager/tty.py:72 linkmanager/tty.py:71 linkmanager/tty.py:71
+msgid "tags (at least one, several separate with spaces)"
+msgstr ""
+"étiquettes (au moins une, les séparer par des espaces s'ils sont multiples)"
+
+#: linkmanager/tty.py:90 linkmanager/tty.py:89 linkmanager/tty.py:89
+msgid "insert at least one tag (several separate with spaces)"
+msgstr ""
+"insérez au moins une étiquette (les séparer par des espaces si multiples)"
+
+#: linkmanager/tty.py:144 linkmanager/tty.py:143 linkmanager/tty.py:143
+msgid "give a title"
+msgstr "donner un titre"
+
+#: linkmanager/tty.py:349 linkmanager/tty.py:348 linkmanager/tty.py:348
+msgid "Title"
+msgstr "Titre"
+
+#: linkmanager/tty.py:365 linkmanager/tty.py:364 linkmanager/tty.py:364
+msgid "Complete URL"
+msgstr "URL Complète"
+
+#: linkmanager/tty.py:372 linkmanager/tty.py:371 linkmanager/tty.py:371
+msgid "Priority order"
+msgstr "poid"
+
+#: linkmanager/tty.py:379 linkmanager/tty.py:378 linkmanager/tty.py:378
+msgid "Tags"
+msgstr "Étiquettes"
+
+#: linkmanager/tty.py:387 linkmanager/tty.py:386 linkmanager/tty.py:386
+msgid "Description"
+msgstr "Description"
+
+#: linkmanager/tty.py:395 linkmanager/tty.py:394 linkmanager/tty.py:394
+msgid "Author"
+msgstr "Auteur"
+
+#: linkmanager/tty.py:404 linkmanager/tty.py:403 linkmanager/tty.py:403
+msgid "and not updated yet."
+msgstr "et non mis à jour."
+
+#: linkmanager/tty.py:400 linkmanager/tty.py:399 linkmanager/tty.py:399
+msgid "create the {date} at {hour}"
+msgstr "créé le {date} à {hour}"
+
+#: linkmanager/tty.py:407 linkmanager/tty.py:406 linkmanager/tty.py:406
+msgid " and update the {date} at {hour}."
+msgstr "et mis à jour le {date} à {hour}."
+
+#: linkmanager/db/__init__.py:62 linkmanager/db/__init__.py:61
+#: linkmanager/db/__init__.py:60 linkmanager/db/__init__.py:60
+msgid "No affiliate tags"
+msgstr "Pas de tags affiliés"
+
+#: linkmanager/db/__init__.py:45 linkmanager/db/__init__.py:45
+msgid "Duplicate error (same link with different properties)"
+msgstr "Erreurs de doublons (lien identique avec des propriétés différentes)"
