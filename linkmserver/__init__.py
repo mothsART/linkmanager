@@ -17,6 +17,8 @@ from linkmanager.db import DataBase
 app = Flask(__name__)
 assets = Environment(app)
 
+db = DataBase(test=settings.DEBUG)
+
 
 # Decorator : get an Unauthorize 403 when read only's settings is True
 def read_only(func):
@@ -40,7 +42,6 @@ def launch_browser(BROWSER=False):
 
 @app.route("/")
 def index():
-    db = DataBase()
     return render_template(
         'index.html',
         DEBUG=settings.DEBUG,
@@ -70,7 +71,6 @@ def editmode():
 @read_only
 @app.route("/add", methods=['POST'])
 def add():
-    db = DataBase()
     fixture = {}
     link = request.form['link']
     fixture[link] = {
@@ -87,7 +87,6 @@ def add():
 @read_only
 @app.route("/update", methods=['POST'])
 def update():
-    db = DataBase()
     fixture = {}
     link = request.form['link']
     if request.form['link'] != request.form['newlink']:
@@ -115,7 +114,6 @@ def update():
 @read_only
 @app.route("/delete", methods=['POST'])
 def delete():
-    db = DataBase()
     result = db.delete_link(request.form['link'])
     return jsonify({'is_delete': result})
 
@@ -123,7 +121,6 @@ def delete():
 @app.route("/search")
 def search():
     results = {}
-    db = DataBase()
     try:
         tags = next(request.args.items())[0].split()
         links = db.sorted_links(*tags)
@@ -145,10 +142,9 @@ def suggest():
     keywords = tags.split()
     last_keyword = keywords[len(keywords) - 1]
     str_suggestion = ' '.join(keywords[:-1])
-    d = DataBase()
 
     suggestions = {}
-    for s in d.complete_tags(last_keyword):
+    for s in db.complete_tags(last_keyword):
         if s not in keywords:
             suggestions[str_suggestion + ' ' + s] = 10
     return jsonify(**suggestions)

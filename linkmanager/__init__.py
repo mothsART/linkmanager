@@ -8,6 +8,6 @@ __version__ = '0.3.2'
 VERSION = tuple(map(int, __version__.split('.')))
 
 
-def interface():
+def interface(test=False):
     from .tty import TTYInterface
-    return TTYInterface()
+    return TTYInterface(test=test)

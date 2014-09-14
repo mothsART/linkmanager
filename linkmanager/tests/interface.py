@@ -91,18 +91,12 @@ linkmanager.settings = fakesettings
 INDENT = fakesettings.INDENT
 
 
-@patch('linkmanager.settings', fakesettings)
-def test_cmd_init():
-    from linkmanager import interface
-    global tty_i
-    tty_i = interface()
-    tty_i.test = True
-
-
-@patch('linkmanager.settings', fakesettings)
 @patch('builtins.input', get_input)
 @patch('sys.stdout', new_callable=StringIO)
 def test_cmd_flush(mock_stdout):
+    from linkmanager import interface
+    global tty_i
+    tty_i = interface(test=True)
     assert tty_i.flush() is True
     assert mock_stdout.getvalue() == ''.join([
         _("You're about to empty the entire Database."),
@@ -140,7 +134,6 @@ def test_cmd_addlinks(mock_stdout):
     assert mock_stdout.getvalue() == _('Database entirely flushed.') + '\n'
     mock_stdout.seek(0)
     assert tty_i.addlinks() is True
-
     assert mock_stdout.getvalue() == ''.join([
         _('Give one or several links (separate with spaces)'), ' :',
 

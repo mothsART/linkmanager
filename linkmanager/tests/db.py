@@ -58,7 +58,6 @@ linkmanager.settings = fakesettings
 del fakesettings.AUTHOR
 
 
-@patch('linkmanager.settings', fakesettings)
 @patch('os.getenv', lambda x: 'Author name')
 def test_init():
     from linkmanager import db
@@ -70,7 +69,6 @@ def test_init():
 @patch('uuid.uuid4', gen_uuid)
 @patch('builtins.open', mock_open(read_data=first_fixture))
 def test_load_redis():
-    global r
     assert r.load(['file.json']) is True
     assert json.loads(first_fixture) == json.loads(r.dump())
 
@@ -93,7 +91,6 @@ def test_get_link_properties_redis():
 @patch('uuid.uuid4', gen_uuid)
 @patch('builtins.open', mock_open(read_data=first_fixture))
 def test_no_result_redis():
-    global r
     # All results
     r.flush()
     r.load(['file.json'])
@@ -182,10 +179,8 @@ second_fixture = """{
 
 # 037df763-c069-40f8-a5ab-ac8bda016feb => http://xkcd.com
 @patch('uuid.uuid4', lambda: '037df763-c069-40f8-a5ab-ac8bda016feb')
-@patch('linkmanager.settings', fakesettings)
 @patch('os.getenv', lambda x: 'Author name')
 def test_addlink_redis():
-    global r
     assert r.add_link(json_addlink) is True
     assert json.loads(second_fixture) == json.loads(r.dump())
 
@@ -282,7 +277,6 @@ fourth_fixture = """{
 fakesettings.AUTHOR = 'Author name'
 
 
-@patch('linkmanager.settings', fakesettings)
 def test_updatelink_redis():
     assert r.add_link(json_updatelink) is True
     assert json.loads(fourth_fixture) == json.loads(r.dump())

@@ -17,7 +17,6 @@ from .db import ( # NOQA
 )
 
 from .interface import ( # NOQA
-    test_cmd_init,
     test_cmd_flush,
 
     test_cmd_addlinks,

@@ -14,16 +14,14 @@ import requests
 from requests_futures.sessions import FuturesSession
 from bs4 import BeautifulSoup
 
-#from linkmanager.settings import INDENT
-from linkmanager import settings
-
+from . import settings, validators
 from .translation import gettext as _
-from . import validators
 from .db import DataBase
 
 
 class TTYInterface:
-    test = False
+    def __init__(self, test=False):
+        self.db = DataBase(test=test)
 
     def preinput(self, label='', preinput=''):
         """ Pre-insert a text on a input function """
@@ -166,7 +164,6 @@ class TTYInterface:
         """ CMD: Add links to Database """
         links = self._links_validator(links)
         fixture = {}
-        db = DataBase(test=self.test)
         for l in links:
             properties = {
                 'priority': 1,
@@ -175,7 +172,7 @@ class TTYInterface:
                 'description': '',
                 'title': ''
             }
-            if db.link_exist(l):
+            if self.db.link_exist(l):
                 print(
                     ' ' * settings.INDENT
                     + red(
@@ -189,7 +186,7 @@ class TTYInterface:
                 update = input(' ')
                 if update not in [_('Y'), '']:
                     continue
-                properties = db.get_link_properties(l)
+                properties = self.db.get_link_properties(l)
                 properties['update date'] = str(arrow.now())
             tags, priority, description, title = self.properties_input(
                 l, **properties
@@ -203,14 +200,13 @@ class TTYInterface:
             }
             if 'update date' in properties:
                 fixture[l]['update date'] = properties['update date']
-        db.add_link(json.dumps(fixture))
+        self.db.add_link(json.dumps(fixture))
         return True
 
     def updatelinks(self, links=None, verbose=False):
         """ CMD: Update a link on Database """
         links = self._links_validator(links)
         fixture = {}
-        db = DataBase(test=self.test)
         for l in links:
             properties = {
                 'priority': 1,
@@ -220,8 +216,8 @@ class TTYInterface:
                 'description': '',
                 'title': ''
             }
-            if db.link_exist(l):
-                properties = db.get_link_properties(l)
+            if self.db.link_exist(l):
+                properties = self.db.get_link_properties(l)
                 properties['update date'] = str(arrow.now())
             else:
                 add = print(
@@ -248,22 +244,21 @@ class TTYInterface:
                 "init date": properties['init date'],
                 "update date": properties['update date']
             }
-        db.add_link(json.dumps(fixture))
+        self.db.add_link(json.dumps(fixture))
         return True
 
     def removelinks(self, links=None, verbose=False):
         """ CMD: Remove a link on Database """
         links = self._links_validator(links)
-        db = DataBase(test=self.test)
         is_removed = False
         for l in links:
-            if not db.link_exist(l):
+            if not self.db.link_exist(l):
                 print(white(
                     _('the link "%s" does not exist.') % l,
                     bold=True, bg_color='red'
                 ))
                 continue
-            if db.delete_link(l):
+            if self.db.delete_link(l):
                 print(white(
                     _('the link "%s" has been deleted.') % l,
                     bold=True, bg_color='green'
@@ -286,7 +281,7 @@ class TTYInterface:
             ), end='') # NOQA
             flush_choice = input(' ')
         if flush_choice == _('Y'):
-            if DataBase(test=self.test).flush():
+            if self.db.flush():
                 print(white(
                     _("Database entirely flushed."),
                     bold=True, bg_color='green'
@@ -296,18 +291,20 @@ class TTYInterface:
 
     def load(self, json_files=None, verbose=False):
         """ CMD: Load a json file """
-        db = DataBase(test=self.test)
-        return db.load(json_files)
+        return self.db.load(json_files)
 
     def dump(self):
         """ CMD: return the serialization of all Database's fields """
-        print(DataBase(test=self.test).dump())
+        print(self.db.dump())
         return True
+
+    def suggest(self, value):
+        """ Return a list of suggest tags """
+        return self.db.complete_tags(value)
 
     def searchlinks(self, tags=[], verbose=False):
         """ CMD: Search links on Database filtering by tags """
-        d = DataBase(test=self.test)
-        links = d.sorted_links(*tags)
+        links = self.db.sorted_links(*tags)
         c_links = len(links)
         if c_links == 0:
             print(white(
@@ -335,7 +332,7 @@ class TTYInterface:
             index_indent = ''
             if index_space:
                 index_indent = ' ' * index_space
-            properties = d.get_link_properties(l)
+            properties = self.db.get_link_properties(l)
             print(
                 ' ' * settings.INDENT,
                 index_indent, '%d ➤' % i,

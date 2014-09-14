@@ -97,6 +97,12 @@ class Choices(object):
             )
         return ''.join(description)
 
+
+def choice_completer(prefix, parsed_args, **kwargs):
+    if vars(parsed_args)['choice'] == 's':
+        # tag completer
+        return TTYInterface.suggest(prefix)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawTextHelpFormatter,
@@ -118,7 +124,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         'value', nargs='*'
-    )
+    ).completer = choice_completer
+
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
     args = vars(args)
