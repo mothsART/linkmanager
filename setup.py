@@ -76,7 +76,7 @@ class PyTest(TestCommand):
         self.test_suite = True
 
     def run_tests(self):
-        #import here, cause outside the eggs aren't loaded
+        # import here, cause outside the eggs aren't loaded
         import pytest
         errno = pytest.main(self.test_args)
         sys.exit(errno)
@@ -131,4 +131,4 @@ if os.path.isfile(zshrc):
         if zsh_cmd not in readlines:
             f.write(zsh_cmd)
 
-#os.popen('$SHELL')
+# os.popen('$SHELL')

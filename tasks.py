@@ -7,22 +7,23 @@ import linkmanager
 
 # @task
 # def clean():
-    #run('git clean -Xfd')
+#   run('git clean -Xfd')
 
 
 @task
-def test(v=False):
-    #run('flake8 .')
+def test(f=False, v=False):
+    if f:
+        run('flake8 *.py **/**.py  --exclude=build/* --exit-zero')
     verbose = ''
     if v:
         verbose = ' -vv'
-    run('py.test%s -s linkmanager/tests/tests.py --cov=linkmanager --cov-report term-missing' % verbose) # NOQA
+    run('py.test%s -s linkmanager/tests/tests.py --cov=linkmanager --cov-report term-missing' % verbose)  # noqa
 
 
 @task
 def trans(pull=False):
-    ### Future Transifex usage (pip install transifex-client)
-    ### need python < 3
+    # Future Transifex usage (pip install transifex-client)
+    # need python < 3
     # if pull:
     #     run('tx pull -a')
     run('./makemessages.py')
@@ -48,11 +49,11 @@ def replace(file_path, line_nb, new_line):
 
 @task
 def version(e=None):
-    ### read linkmanager version
+    # read linkmanager version
     if not e:
         print(linkmanager.__version__)
         exit(0)
-    # ### edit linkmanager version
+    # edit linkmanager version
     # change README version
     replace(
         'README.rst', 24,

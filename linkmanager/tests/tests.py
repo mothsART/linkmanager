@@ -1,4 +1,4 @@
-from .db import ( # NOQA
+from .db import (  # noqa
     test_init,
     test_load_redis,
 
@@ -16,7 +16,7 @@ from .db import ( # NOQA
     test_sorted_links_redis
 )
 
-from .interface import ( # NOQA
+from .interface import (  # noqa
     test_cmd_flush,
 
     test_cmd_addlinks,

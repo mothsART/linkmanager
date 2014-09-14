@@ -9,7 +9,7 @@ from flask import (
     request, jsonify
 )
 from flask.ext.assets import Environment
-#from werkzeug.debug import get_current_traceback
+# from werkzeug.debug import get_current_traceback
 
 from linkmanager import settings
 from linkmanager.db import DataBase

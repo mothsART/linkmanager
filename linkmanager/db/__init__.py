@@ -8,6 +8,7 @@ from collections import OrderedDict
 import requests
 from requests_futures.sessions import FuturesSession
 from bs4 import BeautifulSoup
+from clint.textui import progress
 from clint.textui.colored import white, yellow
 
 from linkmanager import settings
@@ -23,7 +24,7 @@ class MixinDb(object):
     db_nb = settings.DB['DB_NB']
     properties = False
 
-    def load(self, json_files=None):
+    def load(self, json_files=None, ):
         """ Load a string : json format """
         if not json_files:
             print(white(
@@ -45,8 +46,8 @@ class MixinDb(object):
                         yellow(
                             _(
                                 'Duplicate error '
-                                + '(same link with different properties) :'
-                            ),
+                                '(same link with different properties)'
+                            ) + ' :',
                             bold=True, bg_color='red'
                         )
                         + ' ' + link
@@ -60,8 +61,8 @@ class MixinDb(object):
                     errors.append(
                         yellow(
                             _(
-                                'No affiliate tags :'
-                            ),
+                                'No affiliate tags'
+                            ) + ' :',
                             bold=True, bg_color='red'
                         )
                         + ' ' + link
@@ -72,32 +73,34 @@ class MixinDb(object):
                 logger.error(e)
             return False
 
-        # json.dumps(links)
-        # fixture = json.loads(fixture)
         # start_time = datetime.datetime.now()
-        # session = FuturesSession(max_workers=settings.WORKERS)
+        bar = progress.bar(range(len(links)))
+        session = FuturesSession(max_workers=settings.WORKERS)
 
-        # urls = []
-        # for link in fixture:
-        #     if 'title' in fixture[link]:
-        #         if fixture[link]['title'] == '':
-        #             url = session.get(link)
-        #         else:
-        #             url = link
-        #     else:
-        #         url = session.get(link)
-        #     urls.append((url, link))
-        # for url in urls:
-        #     title = ''
-        #     if type(url) == str:
-        #         continue
-        #     try:
-        #         result = url[0].result()
-        #     except:
-        #         # 404 page
-        #         continue
-        #     title = BeautifulSoup(result.content).title.string.strip()
-        #     fixture.get(url[1])['title'] = title
+        urls = []
+        for link in links:
+            if 'title' in link:
+                if link['title'] == '':
+                    url = session.get(link)
+                else:
+                    url = link
+            else:
+                url = session.get(link)
+            urls.append((url, link))
+        for url in urls:
+            title = ''
+            if type(url) == str:
+                next(bar)
+                continue
+            try:
+                result = url[0].result()
+            except:
+                # 404 page
+                next(bar)
+                continue
+            title = BeautifulSoup(result.content).title.string.strip()
+            links.get(url[1])['title'] = title
+            next(bar)
 
         # elsapsed_time = datetime.datetime.now() - start_time
         # print("Elapsed time: %ss" % elsapsed_time.total_seconds())

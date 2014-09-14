@@ -10,7 +10,7 @@ from linkmanager.translation import gettext as _
 
 DEBUG = True
 
-### Database
+# -- Database
 DB = {
     'ENGINE': 'redis',
     'HOST': 'localhost',
@@ -18,12 +18,12 @@ DB = {
     'DB_NB': 0
 }
 
-### Cache
+# -- Cache
 ACTIVE_CACHE = True
 CACHE_PATH = "/var/linkmanager/cache"
 CACHE_MAX_SIZE = "1G"
 
-### Minimizer
+# -- Minimizer
 # * http://tinyurl.com/
 #   MINIMIZER = "http://tinyurl.com/api-create.php?url="
 # * https://bitly.com/
@@ -32,18 +32,18 @@ MINIMIZE_URL = True
 MINIMIZER = "http://www.urlmin.com/api?url="
 MINIMIZER_MIN_SIZE = 25
 
-### Search
+# -- Search
 # 1 <= NB_AUTOSUGGESTIONS <= 40
 NB_AUTOSUGGESTIONS = 10
 NB_RESULTS = 50
 
-### CLI : specific to shell usage
+# -- CLI : specific to shell usage
 INDENT = 4
 
 # nb of Workers
 WORKERS = 5
 
-### WEBSERVICE
+# -- WEBSERVICE
 HTTP_PORT = 7777
 BROWSER = 'firefox'
 READ_ONLY = False
@@ -52,16 +52,17 @@ READ_ONLY = False
 def get(func, section, **kwargs):
     global path
     value = list(kwargs.values())[0]
-    #getattr(config, func)(section, list(kwargs.keys())[0])
     try:
         return getattr(config, func)(section, list(kwargs.keys())[0])
     except configparser.NoOptionError:
         return value
     except:
         logger.warning(white(_(
-            'WARNING! %s : bad value on "%s" (Default: %s)') % (
-            path,
-            list(kwargs.keys())[0], value
+            'WARNING! {path} : bad value on "{name}" (Default: {value})'
+        ).format(
+            path=path,
+            name=list(kwargs.keys())[0],
+            value=value
         ), bold=True, bg_color='yellow'))
         return value
 

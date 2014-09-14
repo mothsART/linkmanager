@@ -10,7 +10,6 @@ import json
 
 import arrow
 from clint.textui.colored import green, red, white
-import requests
 from requests_futures.sessions import FuturesSession
 from bs4 import BeautifulSoup
 
@@ -30,7 +29,7 @@ class TTYInterface:
             readline.redisplay()
 
         readline.set_pre_input_hook(hook)
-        print(label, end='') # NOQA
+        print(label, end='')
         value = input(' ')
         readline.set_pre_input_hook()
         return value
@@ -47,7 +46,7 @@ class TTYInterface:
         if title == '':
             url = FuturesSession().get(link)
 
-        ### Enter tags
+        # -- Enter tags
         p = _('%s properties') % link
         begin_pos = p.find('http')
         end_pos = p[begin_pos:].find(' ')
@@ -94,7 +93,7 @@ class TTYInterface:
                 new_tags
             ))
 
-        ### Enter priority
+        # -- Enter priority
         new_priority = self.preinput(
             ' ' * settings.INDENT
             + green(
@@ -122,7 +121,7 @@ class TTYInterface:
                 str(new_priority)
             )
 
-        ### Enter description
+        # -- Enter description
         new_description = self.preinput(
             ' ' * settings.INDENT
             + green(_('give a description') + ' :', bold=True),
@@ -138,13 +137,13 @@ class TTYInterface:
         if result:
             if result.status_code == 200:
                 title = BeautifulSoup(result.content).title.string
-        ### Enter title
+        # -- Enter title
         new_title = self.preinput(
             ' ' * settings.INDENT
             + green(_('give a title') + ' :', bold=True),
             title
         )
-        ### Cache websites
+        # -- Cache websites
 
         return new_tags, new_priority, new_description, new_title
 
@@ -153,7 +152,7 @@ class TTYInterface:
         if not links:
             print(
                 _('Give one or several links (separate with spaces)') + ' :',
-                end='' # NOQA
+                end=''  # noqa
             )
             links = input(' ')
             links = links.split()
@@ -278,7 +277,7 @@ class TTYInterface:
                     "Are you sure [Y/n] ?"
                 ),
                 bold=True, bg_color='red'
-            ), end='') # NOQA
+            ), end='')  # noqa
             flush_choice = input(' ')
         if flush_choice == _('Y'):
             if self.db.flush():
@@ -397,16 +396,16 @@ class TTYInterface:
                     )
                 )
             cd = arrow.get(properties['init date'])
-            create_date = _('create the %s at %s') % (
-                cd.format('DD MMMM YYYY'),
-                cd.format('HH:mm:ss')
+            create_date = _('create the {date} at {hour}').format(
+                date=cd.format('DD MMMM YYYY'),
+                hour=cd.format('HH:mm:ss')
             )
             update_date = ' ' + _('and not updated yet.')
             if 'update date' in properties:
                 up = arrow.get(properties['update date'])
-                update_date = _(' and update the %s at %s.') % (
-                    up.format('DD MMMM YYYY'),
-                    up.format('HH:mm:ss')
+                update_date = _(' and update the {date} at {hour}.').format(
+                    date=up.format('DD MMMM YYYY'),
+                    hour=up.format('HH:mm:ss')
                 )
             date = create_date + update_date
             print(
