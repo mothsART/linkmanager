@@ -53,10 +53,11 @@ def version(e=None):
     if not e:
         print(linkmanager.__version__)
         exit(0)
+    e = str(e)
     # edit linkmanager version
     # change README version
     replace(
-        'README.rst', 24,
+        'README.rst', 27,
         '                                LinkManager %s\n' % e
     )
     # change python version
@@ -71,24 +72,28 @@ def version(e=None):
         + white('")', bg_color='green')
     )
     i = 0
+    changelog = False
     changes = []
     while True:
         i += 1
         change = input(green('line %s : ' % i))
         if change == 'EOF':
+            if i > 1:
+                changelog = True
             break
         changes.append(change)
     # # add changelog to HISTORY
-    replace(
-        'HISTORY.rst', 2,
-        '\n{version} ({date})\n{underline}\n\n{changes}'.format(
-            version=e,
-            date=str(arrow.now())[:10],
-            # 1 space + 2 parenthesis + date length = 13 + version length
-            underline=(13 + len(e)) * '-',
-            changes=' - ' + '\n - '.join(changes) + '\n\n'
+    if changelog:
+        replace(
+            'HISTORY.rst', 2,
+            '\n{version} ({date})\n{underline}\n\n{changes}'.format(
+                version=e,
+                date=str(arrow.now())[:10],
+                # 1 space + 2 parenthesis + date length = 13 + version length
+                underline=(13 + len(e)) * '-',
+                changes=' - ' + '\n- '.join(changes) + '\n\n'
+            )
         )
-    )
     # add a Debian Changelog
     r = run('date -R', hide='stdout')
     line = ''.join([
@@ -99,6 +104,7 @@ def version(e=None):
             date=r.stdout
         )
     ])
-    replace(
-        'debian/changelog', -1, line
-    )
+    if changelog:
+        replace(
+            'debian/changelog', -1, line
+        )

@@ -1,3 +1,17 @@
+linkmanager (0.4.0) saucy;  urgency=low
+
+  * [cli] : auto-completion
+  * [cli] : progress bar on long load
+  * [webserver] : add/del/update
+  * [webserver] : add a tag-it extension
+  * [webserver] : lazyloading and inline on css & js
+  * conf files on /etc/ and ~/.config
+  * usage of fakeredis on unit tests
+  * [webserver] flatdesign
+  * READ_ONLY option
+
+ -- Jérémie Ferry <jerem.ferry@gmail.com> Tue, 16 Sep 2014 09:07:30 +0200
+
 linkmanager (0.3.0) saucy;  urgency=low
 
   * some setup.py correction + init redis on launch

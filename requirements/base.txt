@@ -1,4 +1,4 @@
-argcomplete==0.8.0
+argcomplete==0.8.1
 arrow==0.4.2
 -e git+https://git@github.com/mothsART/clint.git@v0.4#egg=clint-0.4
 path.py==5.1

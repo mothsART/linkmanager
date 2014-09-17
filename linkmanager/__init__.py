@@ -4,7 +4,7 @@ __appname__ = 'linkmanager'
 __author__ = "Jérémie Ferry <jerem.ferry@gmail.com>"
 __licence__ = "BSD"
 __website__ = "https://github.com/mothsART/linkmanager"
-__version__ = '0.3.2'
+__version__ = '0.4.0'
 VERSION = tuple(map(int, __version__.split('.')))
 
 

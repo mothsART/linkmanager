@@ -1,5 +1,6 @@
 include README.rst HISTORY.rst
 include linkmanager.zsh
+include linkmanager.conf
 
 graft requirements
 graft docs

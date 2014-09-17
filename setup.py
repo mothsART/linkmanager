@@ -104,6 +104,7 @@ setup(
     packages=find_packages(exclude=['tests']),
     scripts=['linkm'],
     data_files=[
+        ('/etc/', ['linkmanager.conf']),
         ('/usr/share/man/man1/', ['docs/linkmanager.1.gz']),
         ('/usr/bin/', ['linkmanager.zsh'])
     ],
