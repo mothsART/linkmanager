@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import sys
 
 try:
@@ -17,7 +18,6 @@ from linkmanager import (
     __website__,
     __licence__, __author__
 )
-import os
 
 base = os.path.dirname(__file__)
 
@@ -64,6 +64,7 @@ a = __author__
 author = a[:a.find("<") - 1]
 author_email = a[a.find("<") + 1:-1]
 
+man_path = '/usr/share/man/man1/'
 
 class PyTest(TestCommand):
     def finalize_options(self):
@@ -105,7 +106,7 @@ setup(
     scripts=['linkm'],
     data_files=[
         ('/etc/', ['linkmanager.conf']),
-        ('/usr/share/man/man1/', ['docs/linkmanager.1.gz']),
+        (man_path, ['docs/linkmanager.1.gz']),
         ('/usr/bin/', ['linkmanager.zsh'])
     ],
     install_requires=required,
@@ -115,6 +116,9 @@ setup(
 )
 if sys.argv != ['-c', 'egg_info', '--egg-base', 'pip-egg-info']:
     exit(0)
+
+# symlink : man linkm == man linkmanager
+os.symlink(man_path + 'linkmanager.1.gz', man_path + 'linkm.1.gz')
 
 bashrc = '/etc/bash.bashrc'
 zshrc = '/etc/zsh/zshrc'

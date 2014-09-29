@@ -1,7 +1,16 @@
-include README.rst HISTORY.rst
+include README.rst HISTORY.rst LICENSE.txt
 include linkmanager.zsh
 include linkmanager.conf
+include linkmanager/default.conf
 
-graft requirements
+recursive-exclude *.pyc
+recursive-exclude *.pyo
+
+recursive-include requirements *.txt
+recursive-exclude requirements *.txt~
+
 graft docs
 graft linkmanager/locale
+graft linkmserver/static
+graft linkmserver/templates
+

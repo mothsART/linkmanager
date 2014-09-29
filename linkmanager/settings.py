@@ -121,10 +121,16 @@ if os.path.exists(path):
     c = config.read(path)
     update_conf()
 
-path = os.path.join(
+directory = os.path.join(
     os.path.expanduser("~"),
-    '.config', 'linkmanager.conf'
+    '.config'
 )
+print(directory)
+path = os.path.join(directory, 'linkmanager.conf')
+
+if not os.path.exists(directory):
+    os.makedirs(directory)
+
 if not os.path.exists(path):
     with open(path, 'w') as f:
         f.write(open(os.path.join(

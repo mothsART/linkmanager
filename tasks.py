@@ -1,3 +1,5 @@
+import gzip
+
 import arrow
 from clint.textui.colored import white, green
 from invoke import run, task
@@ -49,13 +51,26 @@ def replace(file_path, line_nb, new_line):
 
 @task
 def version(e=None):
-    # read linkmanager version
+    # Read linkmanager version
     if not e:
         print(linkmanager.__version__)
         exit(0)
     e = str(e)
-    # edit linkmanager version
-    # change README version
+    # Edit linkmanager version
+    # Edit Manpage
+    presentation = '.TH LINKMANAGER 1 "%s" "linkmanager %s"\n' % (
+        str(arrow.now())[:10],
+        e
+    )
+    replace(
+        'docs/linkmanager.1', 9,
+        presentation
+    )
+
+    with gzip.open('docs/linkmanager.1.gz', 'wb') as f:
+        f.write(open('docs/linkmanager.1', 'rb').read())
+
+    # Change README version
     replace(
         'README.rst', 27,
         '                                LinkManager %s\n' % e
