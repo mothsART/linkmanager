@@ -30,7 +30,7 @@ def read_only(func):
 
 
 def launch_browser(BROWSER=False):
-    subprocess.Popen(
+    subprocess.call(
         'sleep 0.5;nohup %s http://127.0.0.1:%s/ &' % (
             BROWSER,
             settings.HTTP_PORT
@@ -157,4 +157,4 @@ def run(browser=None):
     if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
         launch_browser(BROWSER)
     app.debug = settings.DEBUG
-    app.run(port=settings.HTTP_PORT)
+    app.run(host=settings.HTTP_HOST, port=settings.HTTP_PORT)

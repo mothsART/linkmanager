@@ -56,6 +56,7 @@ def version(e=None):
         print(linkmanager.__version__)
         exit(0)
     e = str(e)
+    print('Older version => %s' % e)
     # Edit linkmanager version
     # Edit Manpage
     presentation = '.TH LINKMANAGER 1 "%s" "linkmanager %s"\n' % (
@@ -66,9 +67,11 @@ def version(e=None):
         'docs/linkmanager.1', 9,
         presentation
     )
-
+    man = open('docs/linkmanager.1', 'rb').read()
     with gzip.open('docs/linkmanager.1.gz', 'wb') as f:
-        f.write(open('docs/linkmanager.1', 'rb').read())
+        f.write(man)
+    with gzip.open('docs/linkm.1.gz', 'wb') as f:
+        f.write(man)
 
     # Change README version
     replace(

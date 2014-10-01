@@ -66,6 +66,7 @@ author_email = a[a.find("<") + 1:-1]
 
 man_path = '/usr/share/man/man1/'
 
+
 class PyTest(TestCommand):
     def finalize_options(self):
         TestCommand.finalize_options(self)
@@ -103,10 +104,13 @@ setup(
     url=__website__,
     license=__licence__,
     packages=find_packages(exclude=['tests']),
+    include_package_data=True,
     scripts=['linkm'],
     data_files=[
         ('/etc/', ['linkmanager.conf']),
         (man_path, ['docs/linkmanager.1.gz']),
+        # symlink : man linkm == man linkmanager
+        (man_path, ['docs/linkm.1.gz']),
         ('/usr/bin/', ['linkmanager.zsh'])
     ],
     install_requires=required,
@@ -116,9 +120,6 @@ setup(
 )
 if sys.argv != ['-c', 'egg_info', '--egg-base', 'pip-egg-info']:
     exit(0)
-
-# symlink : man linkm == man linkmanager
-os.symlink(man_path + 'linkmanager.1.gz', man_path + 'linkm.1.gz')
 
 bashrc = '/etc/bash.bashrc'
 zshrc = '/etc/zsh/zshrc'

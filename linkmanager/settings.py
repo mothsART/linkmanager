@@ -44,6 +44,7 @@ INDENT = 4
 WORKERS = 5
 
 # -- WEBSERVICE
+HTTP_HOST = '127.0.0.1'
 HTTP_PORT = 7777
 BROWSER = 'firefox'
 READ_ONLY = False
@@ -106,6 +107,8 @@ def update_conf():
     global INDENT
     INDENT = get('getint', 'CLI', INDENT=INDENT)
 
+    global HTTP_HOST
+    HTTP_HOST = get('get', 'WEBSERVICE', HTTP_HOST=HTTP_HOST)
     global HTTP_PORT
     HTTP_PORT = get('getint', 'WEBSERVICE', HTTP_PORT=HTTP_PORT)
     global BROWSER
@@ -125,7 +128,6 @@ directory = os.path.join(
     os.path.expanduser("~"),
     '.config'
 )
-print(directory)
 path = os.path.join(directory, 'linkmanager.conf')
 
 if not os.path.exists(directory):

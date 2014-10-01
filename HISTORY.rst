@@ -1,6 +1,11 @@
 Release History
 ===============
 
+0.4.0.1 (2014-09-29)
+--------------------
+
+ - [Bug] first launch + data requirement with installation
+
 0.4.0 (2014-09-16)
 ------------------
 
