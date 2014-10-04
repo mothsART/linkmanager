@@ -35,29 +35,29 @@
 **LinkManager** manage your link on terminal.
 
 Replace bookmark tool present on browser because :
-    * is often heavy
-    * dependent of the browser in question
-    * has a lot of frills
+    * Is often heavy
+    * Dependent of the browser in question
+    * Has a lot of frills
     * DataBase usage depend on browser
-    * find a local link should not require several hundred MB of Ram and eat your CPU
-    * one software for one thing (Unix Philosophy)
+    * Find a local link should not require several hundred MB of Ram and eat your CPU
+    * One software for one thing (Unix Philosophy)
     * KISS for import/export
-    * many other good reasons
+    * Many other good reasons
 
 
 Requirements
 ------------
 
-Linkmanager depends on **redis** Database and GIT (personnal "clint" version).
+Linkmanager depends on **redis** Database and GIT (personal "clint" version).
 You must install it like this (on debian/ubuntu) :
 
 .. code-block:: bash
 
     $ sudo apt-get install redis-server git
 
-To enjoy "completion", you normaly should do nothing.
+To enjoy completion, usually you don't have to do anything extra.
 A "sudo pip install" should add it automatically.
-Otherwise, just put that line in your ~/.bashrc (or ~/.zshrc) :
+Otherwise, just add the run the following command to your ~/.bashrc or ~/.zshrc :
 
 .. code-block:: bash
 
