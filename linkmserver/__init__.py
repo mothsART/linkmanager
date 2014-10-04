@@ -17,8 +17,18 @@ from linkmanager.db import DataBase
 app = Flask(__name__)
 assets = Environment(app)
 
-db = DataBase(test=settings.DEBUG)
+if settings.SERVER:
+    var_path = '/var/cache/linkmanager'
+    if not os.path.exists(var_path):
+        os.makedirs(var_path, mode=0o755)
+    static_path = os.path.join(var_path, 'static')
+    if not os.path.exists(static_path):
+        os.symlink(assets.directory, static_path)
+    assets.directory = static_path
+    assets.url = assets.url[1:]
+    print(assets.url)
 
+db = DataBase()
 
 # Decorator : get an Unauthorize 403 when read only's settings is True
 def read_only(func):
@@ -156,5 +166,9 @@ def run(browser=None):
         BROWSER = browser
     if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
         launch_browser(BROWSER)
+    app.debug = settings.DEBUG
+    app.run(host=settings.HTTP_HOST, port=settings.HTTP_PORT)
+
+if __name__ == '__main__':
     app.debug = settings.DEBUG
     app.run(host=settings.HTTP_HOST, port=settings.HTTP_PORT)

@@ -9,6 +9,7 @@ from clint.textui.colored import white
 from linkmanager.translation import gettext as _
 
 DEBUG = True
+SERVER = False
 
 # -- Database
 DB = {
@@ -71,6 +72,8 @@ def get(func, section, **kwargs):
 def update_conf():
     global DEBUG
     DEBUG = get('getboolean', 'DEFAULT', DEBUG=DEBUG)
+    global SERVER
+    SERVER = get('getboolean', 'DEFAULT', SERVER=SERVER)
     global WORKERS
     WORKERS = get('getint', 'DEFAULT', WORKERS=WORKERS)
 

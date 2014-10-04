@@ -1,9 +1,10 @@
 Release History
 ===============
 
-0.4.0.1 (2014-09-29)
---------------------
+0.4.0.14 (2014-10-04)
+---------------------
 
+ - Add features to LinkManager to use it on a production server
  - [Bug] first launch + data requirement with installation
 
 0.4.0 (2014-09-16)

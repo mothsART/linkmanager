@@ -1,8 +1,9 @@
-linkmanager (0.4.0.1) saucy;  urgency=low
+linkmanager (0.4.0.14) saucy;  urgency=low
 
+  * Add features to LinkManager to use it on a production server
   * [Bug] first launch + data requirement with installation
 
- -- Jérémie Ferry <jerem.ferry@gmail.com> Mon, 29 Sep 2014 20:12:11 +0200
+ -- Jérémie Ferry <jerem.ferry@gmail.com> Sat, 04 Oct 2014 13:18:38 +0200
 
 linkmanager (0.4.0) saucy;  urgency=low
 
