@@ -26,12 +26,13 @@ if settings.SERVER:
         os.symlink(assets.directory, static_path)
     assets.directory = static_path
     assets.url = assets.url[1:]
-    print(assets.url)
 
 db = DataBase()
 
-# Decorator : get an Unauthorize 403 when read only's settings is True
+
 def read_only(func):
+    """ Decorator : get an Unauthorize 403.
+    (when read only's settings is True) """
     def wrapper():
         if settings.READ_ONLY:
             return abort(403)

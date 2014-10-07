@@ -90,7 +90,7 @@ function findKey(obj, value){
 
 // GET Edit mode
 $.ajax({
-    url: '/editmode',
+    url: 'editmode',
     type: "GET",
     dataType: "json",
 }).done(function(value){
@@ -102,7 +102,7 @@ $.ajax({
 // Change Edit Mode
 $("#editmode").click(function(){
     $.post(
-        "/editmode",
+        "editmode",
         {editmode: $(this).hasClass('active')}
     ).done(function(value){
         if(value['editmode'] == true){
@@ -143,7 +143,7 @@ function del(button, link){
     table_tr = $(button).parents().eq(1);
     result_index = parseInt(table_tr[0].id.slice(8));
     $.post(
-        "/delete",
+        "delete",
         {link: link}
     ).done(function(value){
         initial_links.splice(result_index, 1);
@@ -159,7 +159,7 @@ function update(button, link){
     result_index = parseInt(table_tr[0].id.slice(8));
     new_link = new_links[result_index];
     $.post(
-        "/update",
+        "update",
         {
             link: link,
             title: new_link['title'],
@@ -616,7 +616,7 @@ $.fn.LMSuggest = function(opts){
 
     opts.source = function(request, response){
         $.ajax({
-            url: '/suggest',
+            url: 'suggest',
             dataType: 'json',
             data: {
                 tags: request.term,
@@ -647,7 +647,7 @@ $("#searchbar").click(function() {
 
 function suggest_callback(filter) {
     $.ajax({
-        url: '/suggest',
+        url: 'suggest',
         dataType: 'json',
         async: false,
         data: {
