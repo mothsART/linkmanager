@@ -31,10 +31,20 @@ db = DataBase()
 
 
 def read_only(func):
-    """ Decorator : get an Unauthorize 403.
-    (when read only's settings is True) """
+    """ Decorator : get an Unauthorize 403
+    when read only's settings is True. """
     def wrapper():
         if settings.READ_ONLY:
+            return abort(403)
+        return func()
+    return wrapper
+
+
+def is_server(func):
+    """ Decorator : get an Unauthorize 403
+    when server settings is True """
+    def wrapper():
+        if settings.SERVER:
             return abort(403)
         return func()
     return wrapper
@@ -56,7 +66,8 @@ def index():
     return render_template(
         'index.html',
         DEBUG=settings.DEBUG,
-        read_only=settings.READ_ONLY,
+        SERVER=settings.SERVER,
+        READ_ONLY=settings.READ_ONLY,
         nb_links=len(db)
     )
     # try:
@@ -69,9 +80,9 @@ def index():
     #     track.log()
     #     abort(500)
 
-
-@app.route("/editmode", methods=['GET', 'POST'])
 @read_only
+@is_server
+@app.route("/editmode", methods=['GET', 'POST'])
 def editmode():
     if request.method == 'GET':
         return jsonify({'editmode': True})

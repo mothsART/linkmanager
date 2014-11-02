@@ -1,7 +1,10 @@
 import json
 from itertools import cycle
+from io import StringIO
 from collections import OrderedDict
-from unittest.mock import patch, mock_open
+from unittest.mock import patch, mock_open, MagicMock
+
+import asyncio
 
 uuids = [
     'f252f3d1-dfcc-4987-a0c0-3ec057de707a',  # http://linuxfr.org
@@ -25,6 +28,7 @@ first_fixture = """{
             "gnu",
             "linux"
         ],
+        "title": "fake title : no modification",
         "update date": "2014-01-27T17:55:19.985742+00:00"
     },
     "http://phoronix.com": {
@@ -66,11 +70,67 @@ def test_init():
     r.flush()
 
 
+fixture_after_load = """{
+    "http://linuxfr.org": {
+        "description": "fr community ",
+        "init date": "2014-01-27T17:45:19.985742+00:00",
+        "priority": "8",
+        "tags": [
+            "bsd",
+            "gnu",
+            "linux"
+        ],
+        "title": "fake title : no modification",
+        "update date": "2014-01-27T17:55:19.985742+00:00"
+    },
+    "http://phoronix.com": {
+        "description": "OS benchmarking",
+        "init date": "2014-01-27T17:57:19.985742+00:00",
+        "priority": "5",
+        "tags": [
+            "benchmark",
+            "linux"
+        ],
+        "title": "fake title of http://phoronix.com"
+    },
+    "http://ubuntu.com": {
+        "description": "Fr Ubuntu site",
+        "init date": "2014-01-27T17:37:19.985742+00:00",
+        "priority": "10",
+        "tags": [
+            "linux",
+            "python",
+            "shell",
+            "ubuntu"
+        ],
+        "title": "fake title of http://ubuntu.com"
+    }
+}
+"""
+
+class FakeClientResponse:
+    url = ''
+    @asyncio.coroutine
+    def read(self, decode=False):
+        return '<html><head><title>fake title of %s</title></head></html>' % self.url
+
+
+
+@asyncio.coroutine
+def fake_request(method, url):
+    f = FakeClientResponse()
+    f.url = url
+    return f
+
+
 @patch('uuid.uuid4', gen_uuid)
 @patch('builtins.open', mock_open(read_data=first_fixture))
+@patch('aiohttp.request', fake_request)
+#@patch('sys.stderr', new_callable=StringIO)
 def test_load_redis():
-    assert r.load(['file.json']) is True
-    assert json.loads(first_fixture) == json.loads(r.dump())
+    load = r.load(['file.json'], update_titles=True)
+    assert load is True
+    assert json.loads(fixture_after_load) == json.loads(r.dump())
 
 
 def test_link_exist_redis():
@@ -84,12 +144,14 @@ def test_get_link_properties_redis():
         'tags': ['linux', 'python', 'shell', 'ubuntu'],
         'description': 'Fr Ubuntu site',
         'l_uuid': '12a10826-9ccc-4123-8f6c-36fb55cbb40e',
-        'priority': '10'
+        'priority': '10',
+        'title': 'fake title of http://ubuntu.com'
     }
 
 
 @patch('uuid.uuid4', gen_uuid)
 @patch('builtins.open', mock_open(read_data=first_fixture))
+@patch('aiohttp.request', fake_request)
 def test_no_result_redis():
     # All results
     r.flush()
@@ -139,6 +201,7 @@ second_fixture = """{
             "gnu",
             "linux"
         ],
+        "title": "fake title : no modification",
         "update date": "2014-01-27T17:55:19.985742+00:00"
     },
     "http://phoronix.com": {

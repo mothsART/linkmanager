@@ -48,40 +48,45 @@ add_widget_event();
 
 // GET Edit mode
 if ($("#editmode").length){
-    $.ajax({
-        url: 'editmode',
-        type: "GET",
-        dataType: "json",
-    }).done(function(value){
-        if(value['editmode'] == true){
-            $('#editmode').addClass('active');
-        }
-    });
+    if (!$('#editmode').hasClass('server_mode')){
+        $.ajax({
+            url: './editmode',
+            type: "GET",
+            dataType: "json",
+        }).done(function(value){
+            if(value['editmode'] == true){
+                $('#editmode').addClass('active');
+            }
+        });
+    }
 }
 
 // Change Edit Mode
 $("#editmode").click(function(){
-    $.post(
-        "editmode",
-        {editmode: $(this).hasClass('active')}
-    ).done(function(value){
-        if(value['editmode'] == true){
-            $('#editmode').addClass('active');
-            $('.glyphicon-plus').removeClass('hidden');
-            $('td:nth-child(3)').removeClass('hidden');
-            _.map(links_status, function(key){
-                key['priority'] = null;
-                return key;
-            });
-            show_links(_.clone(_.rest(new_links)));
-        }
-        else {
-            $('#editmode').removeClass('active');
-            $('.glyphicon-plus').addClass('hidden');
-            $('td:nth-child(3)').addClass('hidden');
-            show_links(_.clone(_.rest(initial_links)));
-        }
-    }, "json");
+    editmode = $(this).hasClass('active');
+    if(editmode == false){
+        $(this).addClass('active');
+        $('.glyphicon-plus').removeClass('hidden');
+        $('td:nth-child(3)').removeClass('hidden');
+        _.map(links_status, function(key){
+            key['priority'] = null;
+            return key;
+        });
+        show_links(_.clone(_.rest(new_links)));
+    }
+    else {
+        $(this).removeClass('active');
+        $('.glyphicon-plus').addClass('hidden');
+        $('td:nth-child(3)').addClass('hidden');
+        show_links(_.clone(_.rest(initial_links)));
+    }
+    if ($(this).hasClass('server_mode')) { return; }
+    $.ajax({
+        url: './editmode',
+        type: "POST",
+        data: {editmode: $(this).hasClass('active')},
+        dataType: "json",
+    });
 });
 
 // show an add widget
@@ -94,10 +99,12 @@ function add_widget(){
 }
 
 // Add a link
-function add_link(){
+function add_link(button){
     new_link = new_links[0];
+    console.log(new_link);
+    return;
     $.post(
-        "add",
+        "./add",
         {
             link: new_link['url'],
             title: new_link['title'],
@@ -107,10 +114,12 @@ function add_link(){
             description: new_link['description']
         }
     ).done(function(value){
-        if(search_tags == new_link['tags'].join(' ')){
-            get_links();
-            console.log($('#nb-links strong').val());
-        }
+        initial_links.splice(result_index, 1);
+        links_status.splice(result_index, 1);
+        new_links.splice(result_index, 1);
+        show_links(_.clone(_.rest(initial_links)));
+
+        $('#nb-links strong:first').text(nb_links + 1);
     }, "json");
 }
 
@@ -119,7 +128,7 @@ function del(button, link){
     table_tr = $(button).parents().eq(1);
     result_index = parseInt(table_tr[0].id.slice(8));
     $.post(
-        "delete",
+        "./delete",
         {link: link}
     ).done(function(value){
         initial_links.splice(result_index, 1);
@@ -136,7 +145,7 @@ function update(button, link){
     result_index = parseInt(table_tr[0].id.slice(8));
     new_link = new_links[result_index];
     $.post(
-        "update",
+        "./update",
         {
             link: link,
             title: new_link['title'],
@@ -151,9 +160,47 @@ function update(button, link){
             'priority': null, 'description': null
         }
         initial_links[result_index] = _.clone(new_links[result_index]);
-        show_links(_.clone(_.rest(initial_links)));
+        // Update link visualisation
+        html = show_link(result_index - 1, new_link, len, result_index);
+
+        table_tr.replaceWith(html);
+        // if properties on a link value was change
+        var input_update;
+        $("#responses input, #responses textarea").bind('input', function(){
+            adapt_form(input=this, add=false);
+        });
+
+        $("#responses .tagit").tagit({
+            // Options
+            fieldName: "tags",
+            availableTags: suggest_callback,
+            autocomplete: {delay: 0, minLength: 1},
+            showAutocompleteOnFocus: false,
+            removeConfirmation: false,
+            caseSensitive: true,
+            allowDuplicates: false,
+            allowSpaces: false,
+            readOnly: !edit,
+            tagLimit: null,
+            singleField: false,
+            singleFieldDelimiter: ',',
+            singleFieldNode: null,
+            tabIndex: null,
+            placeholderText: null,
+            afterTagAdded: function(evt, ui){
+                if(edit == true) tag_update(evt, ui, remove=false, add=false);
+            },
+            beforeTagRemoved: function(evt, ui){
+                if(edit == true) tag_update(evt, ui, remove=true, add=false);
+            },
+        });
+        $('.readonly').tagit({
+            readOnly: true
+        });
+
+
         table = $($($(
-            '#link_nb_' + parseInt(result_index + 1)
+            '#link_nb_' + parseInt(result_index)
         )[0].childNodes[1])[0].firstChild).after(
             '<small class="update">URL\'s properties update</small>'
         );
@@ -163,7 +210,7 @@ function update(button, link){
         }, 1);
         setTimeout(function(){
             update_message.remove();
-        }, 2000);
+        }, 1000);
     }, "json");
 }
 
@@ -190,7 +237,111 @@ function reset(button, add){
         show_links(_.clone(_.rest(new_links)));
     }
 }
+// Show individual link
+function show_link(l, link, len, inc){
+    var url;
+    var hidden = '';
+    var url = link.url;
+    var title = link.title;
+    var tr = '<tr id="link_nb_<%= nb %>"><td><%= nb %></td><td>';
+    tags = _.map(link.tags, function(value) { return '<li>' + value + '</li>'; }).join('');
+    if(edit == true) {
+        tr += '<table>';
+        // TITLE
+        var label = '<label>Title :</label></td><td>';
+        if (title == ''){
+            tr += '<tr class="has-warning"><td>' + label;
+            tr += '<small>blank title (can be difficult to identify an URL)</small>';
+        }
+        else {
+            tr += '<tr><td>' + label;
+        }
+        if(_.isNull(links_status[inc]['title'])){
+            hidden = ' hidden';
+        }
+        tr += '<div class="input-update' + hidden +'"><div class="glyphicon glyphicon-refresh"></div></div>';
+        tr += '<input class="form-control" value="<%= title %>"></input></td></tr>';
 
+        // URL
+        hidden = ' hidden';
+        if(links_status[inc]['url'] == true){
+            hidden = '';
+        }
+        if(links_status[inc]['url'] == false){
+            tr += '<tr class="has-error"><td><label>Link :</label></td><td>';
+            tr += '<small>URL invalid</small>';
+        }
+        else{
+            tr += '<tr><td><label>Link :<sup> *</sup></label></td><td>';
+        }
+        tr += '<div class="input-update' + hidden +'"><div class="glyphicon glyphicon-refresh"></div></div>';
+        tr += '<input class="form-control" type="url" value="<%= real_url %>"></input></td></tr>';
+
+        // PRIORITY
+        hidden = ' hidden';
+        if(links_status[inc]['priority'] == true){
+            hidden = '';
+        }
+        tr += '<tr><td><label>Priority order :<sup> *</sup></label></td>';
+        tr += '<td><div class="input-update' + hidden + '"><div class="glyphicon glyphicon-refresh"></div></div>';
+        tr += '<input class="form-control" type="number" min="1" max="10" value="<%= priority %>"></input></td></tr>';
+
+        // TAGS
+        hidden = ' hidden';
+        if(links_status[inc]['tags'] == true){
+            hidden = '';
+        }
+        tr += '<tr><td><label>Tags :<sup> *</sup></label></td><td>';
+        has_error = '';
+        if(links_status[inc]['tags'] == false){
+            tr += '<small>requires at least one tag</small>';
+            has_error = ' has-error';
+        }
+        tr += '<div class="tags-update' + hidden + '"><div class="glyphicon glyphicon-refresh"></div></div>';
+        tr += '<ul class="tagit' + has_error + '">' + tags + '</ul>';
+        tr += '</td></tr>';
+
+        // DESCRIPTION
+        hidden = ' hidden';
+        if(links_status[inc]['description'] == true){
+            hidden = '';
+        }
+        tr += '<tr class="last-tr"><td><label>Description :</label></td><td>';
+        tr += '<div class="input-update' + hidden + '"><div class="glyphicon glyphicon-refresh"></div></div>';
+        tr += '<textarea class="form-control"><%= description %></textarea></td></tr>';
+        tr += '<tr class="hidden"><td></td><td><input onclick="update(this, \'<%= link %>\');" type="submit" value="update" />';
+        tr += '<input onclick="reset(this);" type="reset" value="reset" /></td></tr>';
+        tr += '</table>';
+
+        tr += '</td><td>';
+        tr += '<button onclick="del(this, \'<%= link %>\');" title="delete" class="glyphicon glyphicon-minus">';
+        tr += '</button></td></tr>';
+    }
+    else {
+        tr += '<a href="<%= link %>"><%= title %></a>';
+        if(url != link.real_url){
+            tr += '<ul><li>Real URL : <strong><%= real_url %></strong></li>';
+        }
+        tr += '<li>Priority order : <strong><%= priority %></strong></li>';
+        tr += '<li><span>Tags :</span><ul class="readonly tagit">' + tags + '</ul></li>';
+        tr += '<li>Description : <strong><%= description %></strong></li></ul>';
+        if(title == '') {
+            title = url;
+        }
+    }
+
+    $( "#create-user" ).button().on( "click", function() {
+      dialog.dialog( "open" );
+    });
+    return _.template(
+        tr, {
+            nb: l + 1, title: title,
+            link: url, real_url: link.real_url,
+            priority: link.priority,
+            description: link.description
+        }
+    )
+}
 // Show Links : with edit mode or not
 function show_links(links){
     var items = [];
@@ -200,107 +351,10 @@ function show_links(links){
     var len = _.size(links);
     var inc = 1;
     _.each(_.range(len), function(l) {
-        var url;
         link = _.min(links, function(l){
             return parseInt(l.priority);
         });
-        var hidden = '';
-        var url = link.url;
-        var title = link.title;
-        var tr = '<tr id="link_nb_<%= nb %>"><td><%= nb %></td><td>';
-        tags = _.map(link.tags, function(value) { return '<li>' + value + '</li>'; }).join('');
-        if(edit == true) {
-            tr += '<table>';
-            // TITLE
-            var label = '<label>Title :</label></td><td>';
-            if (title == ''){
-                tr += '<tr class="has-warning"><td>' + label;
-                tr += '<small>blank title (can be difficult to identify an URL)</small>';
-            }
-            else {
-                tr += '<tr><td>' + label;
-            }
-            if(_.isNull(links_status[inc]['title'])){
-                hidden = ' hidden';
-            }
-            tr += '<div class="input-update' + hidden +'"><div class="glyphicon glyphicon-refresh"></div></div>';
-            tr += '<input class="form-control" value="<%= title %>"></input></td></tr>';
-
-            // URL
-            hidden = ' hidden';
-            if(links_status[inc]['url'] == true){
-                hidden = '';
-            }
-            if(links_status[inc]['url'] == false){
-                tr += '<tr class="has-error"><td><label>Link :</label></td><td>';
-                tr += '<small>URL invalid</small>';
-            }
-            else{
-                tr += '<tr><td><label>Link :<sup> *</sup></label></td><td>';
-            }
-            tr += '<div class="input-update' + hidden +'"><div class="glyphicon glyphicon-refresh"></div></div>';
-            tr += '<input class="form-control" type="url" value="<%= link %>"></input></td></tr>';
-
-            // PRIORITY
-            hidden = ' hidden';
-            if(links_status[inc]['priority'] == true){
-                hidden = '';
-            }
-            tr += '<tr><td><label>Priority order :<sup> *</sup></label></td>';
-            tr += '<td><div class="input-update' + hidden + '"><div class="glyphicon glyphicon-refresh"></div></div>';
-            tr += '<input class="form-control" type="number" min="1" max="10" value="<%= priority %>"></input></td></tr>';
-
-            // TAGS
-            hidden = ' hidden';
-            if(links_status[inc]['tags'] == true){
-                hidden = '';
-            }
-            tr += '<tr><td><label>Tags :<sup> *</sup></label></td><td>';
-            has_error = '';
-            if(links_status[inc]['tags'] == false){
-                tr += '<small>requires at least one tag</small>';
-                has_error = ' has-error';
-            }
-            tr += '<div class="tags-update' + hidden + '"><div class="glyphicon glyphicon-refresh"></div></div>';
-            tr += '<ul class="tagit' + has_error + '">' + tags + '</ul>';
-            tr += '</td></tr>';
-
-            // DESCRIPTION
-            hidden = ' hidden';
-            if(links_status[inc]['description'] == true){
-                hidden = '';
-            }
-            tr += '<tr class="last-tr"><td><label>Description :</label></td><td>';
-            tr += '<div class="input-update' + hidden + '"><div class="glyphicon glyphicon-refresh"></div></div>';
-            tr += '<textarea class="form-control"><%= description %></textarea></td></tr>';
-            tr += '<tr class="hidden"><td></td><td><input onclick="update(this, \'<%= link %>\');" type="submit" value="update" />';
-            tr += '<input onclick="reset(this);" type="reset" value="reset" /></td></tr>';
-            tr += '</table>';
-
-            tr += '</td><td>';
-            tr += '<button onclick="del(this, \'<%= link %>\');" title="delete" class="glyphicon glyphicon-minus">';
-            tr += '</button></td></tr>';
-        }
-        else {
-            tr += '<a href="<%= link %>"><%= title %></a>';
-            if(url != link.real_url){
-                tr += '<ul><li>Real URL : <strong><%= real_url %></strong></li>';
-            }
-            tr += '<li>Priority order : <strong><%= priority %></strong></li>';
-            tr += '<li><span>Tags :</span><ul class="readonly tagit">' + tags + '</ul></li>';
-            tr += '<li>Description : <strong><%= description %></strong></li></ul>';
-            if(title == '') {
-                title = url;
-            }
-        }
-        html = _.template(
-            tr, {
-                nb: l + 1, title: title,
-                link: url, real_url: link.real_url,
-                priority: link.priority,
-                description: link.description
-            }
-        )
+        html = show_link(l, link, len, inc);
         items.push(html);
         delete links[inc - 1];
         inc += 1;
@@ -389,18 +443,18 @@ function adapt_form(input, add){
     var input_update = $(input).parent().children().filter('.input-update');
 
     if ($(input).attr('type') == 'url'){
-        links_status[result_index]['url'] = false;
+        links_status[result_index]['real_url'] = false;
         if(re_weburl.test($(input).val())){
             tr.removeClass('has-error');
             if(error_help != undefined){
                 error_help.remove();
             }
-            if(initial_links[result_index]['url'] == $(input).val()){
+            if(initial_links[result_index]['real_url'] == $(input).val()){
                 input_update.addClass('hidden');
-                links_status[result_index]['url'] = null;
+                links_status[result_index]['real_url'] = null;
             }
             else{
-                links_status[result_index]['url'] = true;
+                links_status[result_index]['real_url'] = true;
                 input_update.removeClass('hidden');
                 input_update = $($(input).parent()[0].firstChild);
             }
@@ -619,7 +673,7 @@ $.fn.LMSuggest = function(opts){
 
     opts.source = function(request, response){
         $.ajax({
-            url: 'suggest',
+            url: './suggest',
             dataType: 'json',
             data: {
                 tags: request.term,
@@ -650,7 +704,7 @@ $("#searchbar").click(function() {
 
 function suggest_callback(filter) {
     $.ajax({
-        url: 'suggest',
+        url: './suggest',
         dataType: 'json',
         async: false,
         data: {

@@ -1,12 +1,13 @@
 import os
+import sys
 import json
 import uuid
-# import datetime
 import logging
 from collections import OrderedDict
 
-import requests
-from requests_futures.sessions import FuturesSession
+import asyncio
+import aiohttp
+import tqdm
 from bs4 import BeautifulSoup
 from clint.textui import progress
 from clint.textui.colored import white, yellow
@@ -23,24 +24,75 @@ class MixinDb(object):
     port = settings.DB['PORT']
     db_nb = settings.DB['DB_NB']
     properties = False
+    links = {}
+    minimize_links = {}
+    sem = asyncio.Semaphore(5)
 
-    def load(self, json_files=None, update_titles=True):
+    @asyncio.coroutine
+    def get(self, url):
+        try:
+            response = yield from aiohttp.request('GET', url)
+            return (yield from response.read())
+        except aiohttp.OsConnectionError:
+            pass
+        # except:
+        #     # URL is down (404 or other)
+        #     return (False)
+
+    @asyncio.coroutine
+    def wait_with_progress(self, coros):
+        for f in tqdm.tqdm(asyncio.as_completed(coros), total=len(coros)):
+            yield from f
+
+    @asyncio.coroutine
+    def get_content(self, url):
+        with (yield from self.sem):
+            page = yield from self.get(url)
+        if page:
+            try:
+                title = BeautifulSoup(page).title.string.strip()
+            except AttributeError:
+                return
+            self.links.get(url)['title'] = title
+
+    @asyncio.coroutine
+    def get_minimize(self, url_to_minimize):
+        with (yield from self.sem):
+            minimize_link = yield from self.get(
+                settings.MINIMIZER + url_to_minimize
+            )
+        self.minimize_links[url_to_minimize] = minimize_link
+
+    def old_links_without_title(self, links):
+        ''' Keep only link without title '''
+        new_links = {}
+        for link in self.links:
+            if not 'title' in self.links[link]:
+                new_links[link] = self.links[link]
+                continue
+            if self.links[link]['title'] == '':
+                new_links[link] = self.links[link]
+        return new_links
+
+    def links_without_title(self, links):
+        ''' Keep only link without title '''
+        for link in links:
+            if not 'title' in links[link]:
+                yield link
+            elif links[link]['title'] == '':
+                yield link
+
+    def load(self, json_files=None, update_titles=False):
         """ Load a string : json format """
-        if not json_files:
-            print(white(
-                _("No file to load."),
-                bold=True, bg_color='red'
-            ))
-            return False
 
-        links = {}
+        self.links = {}
         errors = []
         for json_file in json_files:
             with open(json_file) as f:
                 fixture = json.loads(f.read())
             for link in fixture:
-                if link in links:
-                    if links[link] == fixture[link]:
+                if link in self.links:
+                    if self.links[link] == fixture[link]:
                         continue
                     errors.append(
                         yellow(
@@ -67,47 +119,44 @@ class MixinDb(object):
                         )
                         + ' ' + link
                     )
-                links[link] = fixture[link]
+                self.links[link] = fixture[link]
         if errors != []:
             for e in set(errors):
                 logger.error(e)
             return False
 
         if not update_titles:
-            return self._add_links(links)
+            return self._add_links(self.links)
 
-        # start_time = datetime.datetime.now()
-        bar = progress.bar(range(len(links)))
-        session = FuturesSession(max_workers=settings.WORKERS)
+        loop = asyncio.get_event_loop()
+        progress = self.wait_with_progress([
+            self.get_content(url)
+            for url in self.links_without_title(self.links)
+        ])
+        loop.run_until_complete(progress)
 
-        urls = []
-        for link in links:
-            if 'title' in link:
-                if link['title'] == '':
-                    url = session.get(link)
-                else:
-                    url = link
-            else:
-                url = session.get(link)
-            urls.append((url, link))
-        for url in urls:
-            title = ''
-            if type(url) == str:
-                next(bar)
-                continue
-            try:
-                result = url[0].result()
-            except:
-                # 404 page
-                next(bar)
-                continue
-            title = BeautifulSoup(result.content).title.string.strip()
-            links.get(url[1])['title'] = title
-            next(bar)
+        add_links = self._add_links(self.links)
+        return add_links
 
-        # elsapsed_time = datetime.datetime.now() - start_time
-        # print("Elapsed time: %ss" % elsapsed_time.total_seconds())
-        return self._add_links(links)
+    def _minimize(self, fixture):
+        ''' Minimize URL if necessite'''
+        links_to_minimize = []
+        for real_link in fixture:
+            if (
+                settings.MINIMIZE_URL
+                and len(real_link) > settings.MINIMIZER_MIN_SIZE
+            ):
+                links_to_minimize.append(real_link)
+
+        # if len(links_to_minimize) == 1:
+        #     self.get(links_to_minimize[0])
+        # else:
+        loop = asyncio.get_event_loop()
+        progress = self.wait_with_progress([
+            self.get_minimize(link_to_minimize)
+            for link_to_minimize in links_to_minimize
+        ])
+        loop.run_until_complete(progress)
 
 
 class RedisDb(MixinDb):
@@ -139,21 +188,13 @@ class RedisDb(MixinDb):
         " Add links on Database"
         fixture = OrderedDict(sorted(fixture.items(), key=lambda t: t[0]))
 
+        minimize_links = self._minimize(fixture)
+
         for real_link in fixture:
             value = fixture[real_link]
-            # -- Minimize URL if necessite
             link = real_link
-            if 'name' in value:
-                link = value['name']
-            if (
-                settings.MINIMIZE_URL and link == real_link
-                and len(real_link) > settings.MINIMIZER_MIN_SIZE
-            ):
-                try:
-                    result = requests.get(settings.MINIMIZER + link)
-                    link = result.content
-                except requests.exceptions.ConnectionError:
-                    pass
+            if link in self.minimize_links:
+                link = self.minimize_links[real_link]
 
             if self._db.hexists('links_uuid', link):
                 l_uuid = self._db.hget('links_uuid', link)
@@ -211,6 +252,8 @@ class RedisDb(MixinDb):
         " Return all properties correspond to a link"
         properties = {}
         l_uuid = self._db.hget('links_uuid', link)
+        if not l_uuid:
+            return False
         properties['tags'] = self.tags(l_uuid.decode())
         p = self._db.hgetall(l_uuid)
         if b'real_link' in p:
@@ -285,7 +328,10 @@ class RedisDb(MixinDb):
 
     def delete_link(self, link):
         " Delete a link on Database"
-        l_uuid = self._db.hget('links_uuid', link).decode()
+        l_uuid = self._db.hget('links_uuid', link)
+        if not l_uuid:
+            return False
+        l_uuid.decode()
 
         for tag in self.tags(l_uuid):
             if self._db.scard(tag) == 1:

@@ -1,16 +1,21 @@
 # -*- coding: utf-8 -*-
+import os
 # python2 "raw_input()" was renamed to input() on python3
 try:
     input = raw_input
 except NameError:
     pass
 
+import datetime
 import readline
 import json
+import asyncio
+import threading
+import urllib.request
 
 import arrow
-from clint.textui.colored import green, red, white
-from requests_futures.sessions import FuturesSession
+from clint.textui.colored import green, red, white, yellow
+#from requests_futures.sessions import FuturesSession
 from bs4 import BeautifulSoup
 
 from . import settings, validators
@@ -18,7 +23,29 @@ from .translation import gettext as _
 from .db import DataBase
 
 
+class inputThread(threading.Thread):
+    """
+    input() is a blocking solution on asyncio package
+    An issue was launched : https://code.google.com/p/tulip/issues/detail?id=213
+    Pending this feature, this Thread replaced it.
+    """
+    def __init__(self, threadID, name, counter):
+        threading.Thread.__init__(self)
+        self.url = None
+        self.title = ''
+
+    def run(self):
+        f = urllib.request.urlopen(self.url)
+        try:
+            page = f.read()
+            self.title = BeautifulSoup(page).title.string.strip()
+        except:
+            pass
+
+
 class TTYInterface:
+    temp_title = ""
+
     def __init__(self, test=False):
         self.db = DataBase(test=test)
 
@@ -43,8 +70,12 @@ class TTYInterface:
         if 'title' in kwargs:
             title = kwargs['title']
             url = None
+
+        input_thread = None
         if title == '':
-            url = FuturesSession().get(link)
+            input_thread = inputThread(1, "Input Thread", 1)
+            input_thread.url = link
+            input_thread.start()
 
         # -- Enter tags
         p = _('%s properties') % link
@@ -127,17 +158,10 @@ class TTYInterface:
             + green(_('give a description') + ' :', bold=True),
             kwargs['description']
         )
-        # test if URL exist
-        try:
-            result = url.result()
-            link = result.url
-        except:
-            result = None
 
-        if result:
-            if result.status_code == 200:
-                title = BeautifulSoup(result.content).title.string
-        # -- Enter title
+        if input_thread:
+            title = input_thread.title
+            input_thread._stop()
         new_title = self.preinput(
             ' ' * settings.INDENT
             + green(_('give a title') + ' :', bold=True),
@@ -180,7 +204,7 @@ class TTYInterface:
                             'do you want to update [Y/n] ?'
                         ) % l + ' :',
                         bold=True
-                    )
+                    ), end=''
                 )
                 update = input(' ')
                 if update not in [_('Y'), '']:
@@ -290,7 +314,59 @@ class TTYInterface:
 
     def load(self, json_files=None, verbose=False):
         """ CMD: Load a json file """
-        return self.db.load(json_files)
+        start_time = datetime.datetime.now()
+        if not json_files:
+            print(white(
+                _("No file to load."),
+                bold=True, bg_color='red'
+            ))
+            return False
+
+        good_json_files = []
+
+        for json_file in json_files:
+            if not os.path.isfile(json_file):
+                print(
+                    '%s%s' % (
+                        white(
+                            _('Missing file') + ': ',
+                            bold=True, bg_color='red'
+                        ),
+                        yellow(
+                            json_file,
+                            bold=True, bg_color='red'
+                        )
+                    )
+                )
+                continue
+            if os.stat(json_file):
+                good_json_files.append(json_file)
+                continue
+            print(
+                '%s%s' % (
+                    white(
+                        _("Missing good file's permission") + ': ',
+                        bold=True, bg_color='red'
+                    ),
+                    yellow(
+                        json_file,
+                        bold=True, bg_color='red'
+                    )
+                )
+            )
+        if good_json_files != []:
+            if not self.db.load(good_json_files):
+                return False
+            elsapsed_time = datetime.datetime.now() - start_time
+            print(_("Elapsed time: %ss") % elsapsed_time.total_seconds())
+            print(white(
+                _('Links have been loaded from files :'),
+                bold=True, bg_color='green'
+            ))
+            for good_file in good_json_files:
+                print(' ' * settings.INDENT + good_file)
+            return True
+        return False
 
     def dump(self):
         """ CMD: return the serialization of all Database's fields """

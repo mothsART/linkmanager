@@ -1,6 +1,7 @@
 import json
 from io import StringIO
 from unittest.mock import (patch, mock_open, MagicMock)
+import asyncio
 
 from linkmanager.translation import gettext as _
 
@@ -35,7 +36,7 @@ addlink = iter([
     15,
     5,
     'link_3 description...',
-    'link3_title',
+    False, # 'link3_title',
 
     ### input on: test_cmd_addlinks_with_update
     'http://link2.com http://link3.com http://link4.com',
@@ -91,6 +92,30 @@ linkmanager.settings = fakesettings
 INDENT = fakesettings.INDENT
 
 
+class FakeClientResponse:
+    url = ''
+    @asyncio.coroutine
+    def read(self, decode=False):
+        return '<html><head><title>fake title of %s</title></head></html>' % self.url
+
+
+@asyncio.coroutine
+def fake_request(method, url):
+    with open('fake.json', 'w') as f:
+        f.write('ok')
+    f = FakeClientResponse()
+    f.url = url
+    return f
+
+
+@asyncio.coroutine
+def fake_tqdm(coros, total):
+    f = FakeClientResponse()
+    return f
+
+
+@patch('linkmanager.db.aiohttp.request', fake_request)
+@patch('linkmanager.db.tqdm.tqdm', fake_tqdm)
 @patch('builtins.input', get_input)
 @patch('sys.stdout', new_callable=StringIO)
 def test_cmd_flush(mock_stdout):
@@ -112,24 +137,24 @@ def test_cmd_flush(mock_stdout):
     ])
 
 
-class FakeURL:
-    def result(self):
-        class Result:
-            url = 'http://fakeurl.com'
-            content = '<html><head><title>Fake Title</title></head></html>'
-            status_code = 200
-        return Result()
+class FakeUrlOpen:
+    url = ''
+    def read(self):
+        return '<html><head><title>fake title of %s</title></head></html>' % self.url
 
+def fake_url_open(url):
+    f = FakeUrlOpen()
+    f.url = url
+    return f
 
-def session_get(link, url):
-    return FakeURL()
-
-
-@patch('requests_futures.sessions.FuturesSession.get', session_get)
+@patch('linkmanager.db.aiohttp.request', fake_request)
+@patch('linkmanager.db.tqdm.tqdm', fake_tqdm)
 @patch('builtins.input', get_input)
-@patch('sys.stdout', new_callable=StringIO)
 @patch('arrow.now', lambda: "2014-02-10T19:59:34.612714+01:00")
+@patch('urllib.request.urlopen', fake_url_open)
+@patch('sys.stdout', new_callable=StringIO)
 def test_cmd_addlinks(mock_stdout):
+#def test_cmd_addlinks():
     tty_i.flush(forced=['forced'])
     assert mock_stdout.getvalue() == _('Database entirely flushed.') + '\n'
     mock_stdout.seek(0)
@@ -167,26 +192,25 @@ def test_cmd_addlinks(mock_stdout):
     ])
 
 
-@patch('requests_futures.sessions.FuturesSession.get', session_get)
+@patch('linkmanager.db.tqdm.tqdm', fake_tqdm)
 @patch('builtins.input', get_input)
 @patch('sys.stdout', new_callable=StringIO)
 @patch('arrow.now', lambda: "2014-02-14T10:22:34.612714+01:00")
 @patch('linkmanager.settings.AUTHOR', 'Author name')
 def test_cmd_addlinks_with_update(mock_stdout):
     assert tty_i.addlinks() is True
-
     assert mock_stdout.getvalue() == ''.join([
         _('Give one or several links (separate with spaces)'), ' :',
 
         ' ' * INDENT, _(
             'the link "%s" already exist: '
             'do you want to update [Y/n] ?'
-        ) % 'http://link2.com', ' :\n',
+        ) % 'http://link2.com', ' :',
 
         ' ' * INDENT, _(
             'the link "%s" already exist: '
             'do you want to update [Y/n] ?'
-        ) % 'http://link3.com', ' :\n',
+        ) % 'http://link3.com', ' :',
         _('%s properties') % 'http://link3.com', ' :\n',
         ' ' * INDENT, _('tags (at least one, several separate with spaces)'),
         ' :',
@@ -257,7 +281,7 @@ def test_cmd_addlinks_dump(mock_stdout):
     assert json.loads(mock_stdout.getvalue()) == json.loads(dump_afteradd)
 
 
-@patch('requests_futures.sessions.FuturesSession.get', session_get)
+@patch('linkmanager.db.tqdm.tqdm', fake_tqdm)
 @patch('builtins.input', get_input)
 @patch('sys.stdout', new_callable=StringIO)
 @patch('arrow.now', lambda: "2014-02-15T12:20:34.612714+01:00")
@@ -278,7 +302,7 @@ def test_cmd_updatelinks(mock_stdout):
     ])
 
 
-@patch('requests_futures.sessions.FuturesSession.get', session_get)
+@patch('linkmanager.db.tqdm.tqdm', fake_tqdm)
 @patch('builtins.input', get_input)
 @patch('sys.stdout', new_callable=StringIO)
 @patch('arrow.now', lambda: "2014-02-10T19:59:34.612714+01:00")
@@ -506,9 +530,14 @@ first_fixture = """{
 
 
 @patch('builtins.open', mock_open(read_data=first_fixture))
+@patch('os.path.isfile', lambda path: True)
+@patch('os.stat', lambda path: True)
 @patch('sys.stdout', new_callable=StringIO)
 def test_cmd_one_load(mock_stdout):
+    import sys
     tty_i.flush(forced=['forced'])
+    with open('fake.json', 'w') as f:
+        f.write(mock_stdout.getvalue() + "\n#######\n")
     # One file
     assert tty_i.load(['file.json']) is True
 
@@ -641,7 +670,8 @@ def multi_mock_open(mock=None, read_data=''):
     mock.return_value = handle
     return mock
 
-
+@patch('os.path.isfile', lambda path: True)
+@patch('os.stat', lambda path: True)
 @patch('builtins.open', multi_mock_open())
 @patch('sys.stdout', new_callable=StringIO)
 def test_cmd_multi_load(mock_stdout):

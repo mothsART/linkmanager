@@ -33,9 +33,13 @@
         <div class="container bs-docs-container">
             <nav>
                 <ul class="nav navbar-nav navbar-right" role="navigation">
-                    {% if READ_ONLY %}
+                    {% if not READ_ONLY %}
                         <li>
-                            <button id="editmode" title="edit mode" class="glyphicon glyphicon-edit"></button>
+                            {% if SERVER %}
+                                <button id="editmode" title="edit mode" class="glyphicon glyphicon-edit server_mode"></button>
+                            {% else %}
+                                <button id="editmode" title="edit mode" class="glyphicon glyphicon-edit"></button>
+                            {% endif %}
                         </li>
                     {% endif %}
                     <!--
@@ -50,11 +54,11 @@
             </a>
 
             <div class="title">
-                <h1><a href="/">LinkManager</a></h1>
+                <h1><a href=".">LinkManager</a></h1>
             </div>
 
             <section class="row">
-                <form role="form" id="searchform" class="col-md-8" action="search" method="POST">
+                <form role="form" id="searchform" class="col-md-8" action="./search" method="POST">
                     <div class="input-group">
                         <div id="nb-links"><strong>{{ nb_links }}</strong> links</div>
                         <div id="searchbar-sucess" class="form-group has-success has-feedback">
@@ -68,7 +72,7 @@
                 </form>
                 <div class="col-md-4">
                     <span class="hidden" id="nb-results"></span>
-                    {% if READ_ONLY %}
+                    {% if not READ_ONLY %}
                         <button title="add" onclick="add_widget();" class="glyphicon glyphicon-plus"></button>
                     {% endif %}
                 </div>
@@ -125,7 +129,7 @@
                                 </tr>
                                 <tr class="hidden">
                                     <td></td>
-                                    <td><input onclick="add_link();" type="submit" value="add" />
+                                    <td><input onclick="add_link(this);" type="submit" value="add" />
                                     <input onclick="reset(this, add=true);" type="reset" value="reset" />
                                     </td>
                                 </tr>

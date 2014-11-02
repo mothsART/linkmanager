@@ -19,7 +19,8 @@ def test(f=False, v=False):
     verbose = ''
     if v:
         verbose = ' -vv'
-    run('py.test%s -s linkmanager/tests/tests.py --cov=linkmanager --cov-report term-missing' % verbose)  # noqa
+    run('py.test%s -s linkmanager/tests/tests.py --cov=linkmanager --cov-report term-missing' % verbose, pty=True)  # noqa
+    #run('py.test%s -s linkmanager/tests/tests.py --cov=linkmanager --cov-report term-missing --capture=sys' % verbose, pty=True)  # noqa
 
 
 @task
@@ -28,13 +29,13 @@ def trans(pull=False):
     # need python < 3
     # if pull:
     #     run('tx pull -a')
-    run('./makemessages.py')
-    run('./compilemessages.py')
+    run('./makemessages.py', pty=True)
+    run('./compilemessages.py', pty=True)
 
 
 @task
 def docs():
-    run('cd docs; make html; cd ..')
+    run('cd docs; make html; cd ..', pty=True)
 
 
 def replace(file_path, line_nb, new_line):
