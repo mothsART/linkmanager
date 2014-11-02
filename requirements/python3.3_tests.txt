@@ -1,5 +1,5 @@
 -r base.txt
--e git+git@github.com:mothsART/fakeredis.git@9519dac2bac36e1e4c36f7088bdbcea01edb7dbc#egg=fakeredis-master
+-e git+https://git@github.com/fakeredis.git@9519dac2bac36e1e4c36f7088bdbcea01edb7dbc#egg=fakeredis-master
 asyncio==3.4.1
 mock==1.0.1
 cov-core==1.7
