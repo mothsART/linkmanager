@@ -1,6 +1,6 @@
 language: python
-services:
-  - redis-server
+python:
+  - "3.3"
 install:
   - pip install --upgrade setuptools tox coveralls
 script:
