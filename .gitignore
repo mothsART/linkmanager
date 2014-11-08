@@ -21,6 +21,19 @@ docs/coverage
 .coverage
 .installed.cfg
 
+# ./setup.py generate files/dir #
+#################################
+
+bin/
+clint.zip
+include/
+lib/
+local/
+src/
+
+# GIT #
+#######
+
 .git/
 
 # Tox #
