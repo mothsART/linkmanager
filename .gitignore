@@ -1,0 +1,43 @@
+# python compiled source and temporary files #
+##############################################
+
+*.py[co]
+*~
+
+# gettext compiled file #
+#########################
+
+*.pot
+*.mo
+
+# Sphinx directories and files #
+################################
+
+docs/tests.xml
+docs/api
+docs/build
+docs/coverage
+
+.coverage
+.installed.cfg
+
+.git/
+
+# Tox #
+#######
+
+.tox
+
+# dirs create on packaging #
+############################
+
+linkmanager.egg-info
+build
+dist
+
+# css and js generate #
+#######################
+
+linkmserver/static/gen/script.js
+linkmserver/static/gen/style.css
+
