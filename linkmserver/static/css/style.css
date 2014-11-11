@@ -473,6 +473,41 @@ small.update.disappear {
 }
 /*
  ========
+| Dialog |
+ ========
+*/
+.ui-dialog .ui-dialog-buttonpane button {
+    background: none;
+    border: solid 1px #ccc;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    border-radius: 0;
+    -webkit-transition: all .4s ease-in-out;
+    -moz-transition: all .4s ease-in-out;
+    -ms-transition: all .4s ease-in-out;
+    -o-transition: all .4s ease-in-out;
+    transition: all .4s ease-in-out;
+}
+.ui-dialog .ui-dialog-buttonpane button:hover {
+    background-color: #e6e6e6;
+    border-color: #adadad;
+}
+.ui-widget-header {
+    border: none;
+    background: none;
+    background-color: red;
+}
+.ui-dialog .ui-dialog-content,
+.ui-dialog .ui-dialog-buttonpane {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+.ui-dialog-titlebar-close {
+  display: none;
+}
+/*
+ ========
 |  Misc  |
  ========
 */

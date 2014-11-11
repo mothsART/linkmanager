@@ -49,6 +49,8 @@ HTTP_HOST = '127.0.0.1'
 HTTP_PORT = 7777
 BROWSER = 'firefox'
 READ_ONLY = False
+UPDATE = True
+DELETE = True
 
 
 def get(func, section, **kwargs):
@@ -111,14 +113,17 @@ def update_conf():
     INDENT = get('getint', 'CLI', INDENT=INDENT)
 
     global HTTP_HOST
-    HTTP_HOST = get('get', 'WEBSERVICE', HTTP_HOST=HTTP_HOST)
+    HTTP_HOST = get('get', 'WEBAPP', HTTP_HOST=HTTP_HOST)
     global HTTP_PORT
-    HTTP_PORT = get('getint', 'WEBSERVICE', HTTP_PORT=HTTP_PORT)
+    HTTP_PORT = get('getint', 'WEBAPP', HTTP_PORT=HTTP_PORT)
     global BROWSER
-    BROWSER = get('get', 'WEBSERVICE', BROWSER=BROWSER)
+    BROWSER = get('get', 'WEBAPP', BROWSER=BROWSER)
     global READ_ONLY
-    READ_ONLY = get('getboolean', 'WEBSERVICE', READ_ONLY=READ_ONLY)
-
+    READ_ONLY = get('getboolean', 'WEBAPP', READ_ONLY=READ_ONLY)
+    global UPDATE
+    UPDATE = get('getboolean', 'WEBAPP', UPDATE=UPDATE)
+    global DELETE
+    DELETE = get('getboolean', 'WEBAPP', DELETE=DELETE)
 
 config = configparser.ConfigParser()
 # /etc config file
@@ -126,7 +131,7 @@ path = '/etc/linkmanager.conf'
 if os.path.exists(path):
     c = config.read(path)
     update_conf()
-
+# user config file
 directory = os.path.join(
     os.path.expanduser("~"),
     '.config'
@@ -145,3 +150,22 @@ if not os.path.exists(path):
 else:
     c = config.read(path)
     update_conf()
+
+
+def set_user_conf(**kwargs):
+    path = os.path.join(directory, 'linkmanager.conf')
+
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    if not os.path.exists(path):
+        with open(path, 'w') as f:
+            f.write(open(os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                'default.conf'
+            ), 'r').read())
+    c = config.read(path)
+
+    for section in kwargs:
+        option = kwargs[section]
+        c.set(section, option['label'], option['value'])

@@ -55,7 +55,7 @@ choices = {
         's', 'search',
         _('search links on database'), TTYInterface.searchlinks
     ],
-    'web': ['w', 'web', _('launch a webservice'), webserver],
+    'web': ['w', 'web', _('launch a webapp'), webserver],
 }
 
 

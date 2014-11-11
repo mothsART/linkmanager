@@ -1,5 +1,4 @@
 import os
-import sys
 import json
 import uuid
 import logging
@@ -9,8 +8,7 @@ import asyncio
 import aiohttp
 import tqdm
 from bs4 import BeautifulSoup
-from clint.textui import progress
-from clint.textui.colored import white, yellow
+from clint.textui.colored import yellow
 
 from linkmanager import settings
 from linkmanager.translation import gettext as _
@@ -148,15 +146,20 @@ class MixinDb(object):
             ):
                 links_to_minimize.append(real_link)
 
-        # if len(links_to_minimize) == 1:
-        #     self.get(links_to_minimize[0])
-        # else:
-        loop = asyncio.get_event_loop()
-        progress = self.wait_with_progress([
-            self.get_minimize(link_to_minimize)
-            for link_to_minimize in links_to_minimize
-        ])
-        loop.run_until_complete(progress)
+        if len(links_to_minimize) == 0:
+            return
+        if len(links_to_minimize) == 1:
+            self.get(links_to_minimize[0])
+            return
+        try:
+            loop = asyncio.get_event_loop()
+            progress = self.wait_with_progress([
+                self.get_minimize(link_to_minimize)
+                for link_to_minimize in links_to_minimize
+            ])
+            loop.run_until_complete(progress)
+        except:
+            self.get_minimize(links_to_minimize)
 
 
 class RedisDb(MixinDb):
@@ -225,6 +228,8 @@ class RedisDb(MixinDb):
                 'priority': value['priority'],
                 'init date': value['init date'],
             }
+            if 'real_link' in fixture[link]:
+                real_link = fixture[link]['real_link']
             if link != real_link:
                 properties['real_link'] = real_link
 

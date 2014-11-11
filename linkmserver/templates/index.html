@@ -26,10 +26,12 @@
             {% endassets %}
         {% endif %}
 
-
         <title>LinkManager</title>
     </head>
     <body>
+        <div id="dialog-confirm" title="Confirm deletion?">
+        </div>
+
         <div class="container bs-docs-container">
             <nav>
                 <ul class="nav navbar-nav navbar-right" role="navigation">
@@ -60,7 +62,7 @@
             <section class="row">
                 <form role="form" id="searchform" class="col-md-8" action="./search" method="POST">
                     <div class="input-group">
-                        <div id="nb-links"><strong>{{ nb_links }}</strong> links</div>
+                        <div id="nb-links">Total: <strong>{{ nb_links }}</strong> links</div>
                         <div id="searchbar-sucess" class="form-group has-success has-feedback">
                             <input type="search" id="searchbar" name="searchbar" class="ui-autocomplete-input form-control" placeholder="key words" autocomplete="on">
                             <span id="search-ok" class="glyphicon glyphicon-ok form-control-feedback"></span>

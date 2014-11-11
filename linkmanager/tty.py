@@ -358,7 +358,7 @@ class TTYInterface:
             if not self.db.load(good_json_files):
                 return False
             elsapsed_time = datetime.datetime.now() - start_time
-            print(_("Elapsed time: %ss") % elsapsed_time.total_seconds())
+            print(_("Elapsed time: %s") % elsapsed_time.total_seconds())
             print(white(
                 _('Links have been loaded from files :'),
                 bold=True, bg_color='green'

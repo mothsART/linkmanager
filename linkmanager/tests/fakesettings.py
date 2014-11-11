@@ -34,7 +34,9 @@ INDENT = 4
 # nb of Workers
 WORKERS = 5
 
-# -- WEBSERVICE
+# -- WEBAPP
 HTTP_PORT = 7777
 BROWSER = 'firefox'
 READ_ONLY = False
+UPDATE = True
+DELETE = True

@@ -101,8 +101,8 @@ function add_widget(){
 // Add a link
 function add_link(button){
     new_link = new_links[0];
-    console.log(new_link);
-    return;
+    // console.log(new_link);
+    // return;
     $.post(
         "./add",
         {
@@ -127,6 +127,11 @@ function add_link(button){
 function del(button, link){
     table_tr = $(button).parents().eq(1);
     result_index = parseInt(table_tr[0].id.slice(8));
+    var data = dialog.data();
+    data.link = link;
+    data.result_index = result_index;
+    dialog.dialog("open");
+    return;
     $.post(
         "./delete",
         {link: link}
@@ -333,10 +338,14 @@ function show_link(l, link, len, inc){
     $( "#create-user" ).button().on( "click", function() {
       dialog.dialog( "open" );
     });
+    real_url = link.real_url;
+    if (!link.real_url){
+        real_url = url;
+    }
     return _.template(
         tr, {
             nb: l + 1, title: title,
-            link: url, real_url: link.real_url,
+            link: url, real_url: real_url,
             priority: link.priority,
             description: link.description
         }
@@ -741,4 +750,37 @@ $("#myTags").tagit({
 
 $(window).ready(function(){
     nb_links = parseInt($('#nb-links strong:first').text());
+});
+
+// Delete dialog
+dialog = $("#dialog-confirm").dialog({
+    autoOpen: false,
+    height: 50,
+    width: 250,
+    modal: true,
+    open: function(){
+        $('.ui-widget-overlay').bind('click', function(){
+            $('#dialog-confirm').dialog('close');
+        })
+    },
+    buttons: {
+        "Confirm deletion": function() {
+            link = $(this).data('link');
+            result_index = $(this).data('result_index');
+            $.post(
+                "./delete",
+                {link: link}
+            ).done(function(value){
+                initial_links.splice(result_index, 1);
+                links_status.splice(result_index, 1);
+                new_links.splice(result_index, 1);
+                show_links(_.clone(_.rest(initial_links)));
+                $('#nb-links strong:first').text(nb_links - 1);
+            }, "json");
+            $(this).dialog("close");
+        },
+        Cancel: function() {
+            $(this).dialog("close");
+        }
+    }
 });
