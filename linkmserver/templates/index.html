@@ -154,7 +154,7 @@
             <script src="static/js/lib.js" type="text/javascript"></script>
             <script src="static/js/search.js" type="text/javascript"></script>
         {% else %}
-            {% assets filters="rjsmin", output="gen/packed.js",
+            {% assets filters="jsmin", output="gen/packed.js",
             "js/jquery.min.js", "js/jquery-ui.min.js",
             "js/bootstrap.min.js",
             "js/underscore-min.js",
@@ -169,7 +169,6 @@
                 </script>
             {% endassets %}
         {% endif %}
-
         <!-- USE CDN
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js" type="text/javascript"></script>
         <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1/jquery-ui.min.js" type="text/javascript"></script>

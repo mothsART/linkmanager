@@ -101,8 +101,6 @@ function add_widget(){
 // Add a link
 function add_link(button){
     new_link = new_links[0];
-    // console.log(new_link);
-    // return;
     $.post(
         "./add",
         {
@@ -114,12 +112,21 @@ function add_link(button){
             description: new_link['description']
         }
     ).done(function(value){
-        initial_links.splice(result_index, 1);
-        links_status.splice(result_index, 1);
-        new_links.splice(result_index, 1);
         show_links(_.clone(_.rest(initial_links)));
 
         $('#nb-links strong:first').text(nb_links + 1);
+
+        // table = $('#add-widget').before(
+        //     '<small class="update">URL\'s properties update</small>'
+        // );
+        // update_message = table.next();
+        // setTimeout(function(){
+        //     update_message.addClass('disappear');
+        // }, 1);
+        $('#add-widget').addClass('hidden');
+        //setTimeout(function(){
+        //     update_message.remove();
+        // }, 1000);
     }, "json");
 }
 
