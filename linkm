@@ -123,6 +123,10 @@ if __name__ == "__main__":
         default=False, action='store_const', const='verbose'
     )
     parser.add_argument(
+        '-m', '--minimizer', help=_('minimize URLs'),
+        default=False, action='store_const', const='minimizer'
+    )
+    parser.add_argument(
         'value', nargs='*'
     ).completer = choice_completer
 
@@ -130,16 +134,19 @@ if __name__ == "__main__":
     args = parser.parse_args()
     args = vars(args)
 
+    verbose = False
+    if args['verbose'] == 'verbose':
+        verbose = True
+    minimizer = False
     try:
         f_name = Choices.call(args['choice']).__name__
         if f_name == 'flush':
-            Choices.call(args['choice'])(args['value'] + [args['forced']])
+            Choices.call(args['choice'])(args['forced'])
+        elif f_name == 'load':
+            Choices.call(args['choice'])(args['value'], verbose, args['minimizer'])
         elif f_name == 'dump':
             Choices.call(args['choice'])()
         else:
-            verbose = False
-            if args['verbose'] == 'verbose':
-                verbose = True
             Choices.call(args['choice'])(args['value'], verbose)
     except KeyboardInterrupt:
         print('\n' + _('Ctrl + C interruption'))

@@ -20,7 +20,7 @@ CACHE_MAX_SIZE = "1G"
 # * https://bitly.com/
 
 MINIMIZE_URL = True
-MINIMIZER = "http://www.urlmin.com/api?url="
+MINIMIZER = "https://www.googleapis.com/urlshortener/v1/url"
 MINIMIZER_MIN_SIZE = 25
 
 # -- Search

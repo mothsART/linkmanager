@@ -15,7 +15,6 @@ import urllib.request
 
 import arrow
 from clint.textui.colored import green, red, white, yellow
-#from requests_futures.sessions import FuturesSession
 from bs4 import BeautifulSoup
 
 from . import settings, validators
@@ -26,7 +25,8 @@ from .db import DataBase
 class inputThread(threading.Thread):
     """
     input() is a blocking solution on asyncio package
-    An issue was launched : https://code.google.com/p/tulip/issues/detail?id=213
+    An issue was launched :
+    https://code.google.com/p/tulip/issues/detail?id=213
     Pending this feature, this Thread replaced it.
     """
     def __init__(self, threadID, name, counter):
@@ -56,7 +56,7 @@ class TTYInterface:
             readline.redisplay()
 
         readline.set_pre_input_hook(hook)
-        print(label, end='')
+        print(label, end='')   # noqa
         value = input(' ')
         readline.set_pre_input_hook()
         return value
@@ -289,9 +289,9 @@ class TTYInterface:
                 is_removed = True
         return is_removed
 
-    def flush(self, forced=['']):
+    def flush(self, forced=''):
         """ CMD: Purge the entire Database """
-        if forced[0] == 'forced':
+        if forced == 'forced':
             flush_choice = _('Y')
         else:
             print(white(
@@ -312,7 +312,7 @@ class TTYInterface:
                 return True
         return False
 
-    def load(self, json_files=None, verbose=False):
+    def load(self, json_files=None, verbose=False, minimizer=False):
         """ CMD: Load a json file """
         start_time = datetime.datetime.now()
         if not json_files:
@@ -355,16 +355,22 @@ class TTYInterface:
                 )
             )
         if good_json_files != []:
-            if not self.db.load(good_json_files):
+            if not self.db.load(
+                json_files=good_json_files,
+                minimizer=minimizer
+            ):
                 return False
-            elsapsed_time = datetime.datetime.now() - start_time
-            print(_("Elapsed time: %s") % elsapsed_time.total_seconds())
             print(white(
                 _('Links have been loaded from files :'),
                 bold=True, bg_color='green'
             ))
             for good_file in good_json_files:
                 print(' ' * settings.INDENT + good_file)
+
+            elapsed_time = datetime.datetime.now() - start_time
+            # if verbose mode : print elapsed time
+            if verbose:
+                print(_("Elapsed time: %s") % elapsed_time.total_seconds())
             return True
         return False
 

@@ -49,9 +49,10 @@ HTTP_HOST = '127.0.0.1'
 HTTP_PORT = 7777
 BROWSER = 'firefox'
 READ_ONLY = False
+EDITMODE = False
+DELETEDIALOG = True
 UPDATE = True
 DELETE = True
-
 
 def get(func, section, **kwargs):
     global path
@@ -122,8 +123,12 @@ def update_conf():
     READ_ONLY = get('getboolean', 'WEBAPP', READ_ONLY=READ_ONLY)
     global UPDATE
     UPDATE = get('getboolean', 'WEBAPP', UPDATE=UPDATE)
+    global DELETEDIALOG
+    DELETEDIALOG = get('getboolean', 'WEBAPP', DELETEDIALOG=DELETEDIALOG)
     global DELETE
     DELETE = get('getboolean', 'WEBAPP', DELETE=DELETE)
+    global EDITMODE
+    EDITMODE = get('getboolean', 'WEBAPP', EDITMODE=EDITMODE)
 
 config = configparser.ConfigParser()
 # /etc config file
@@ -164,8 +169,15 @@ def set_user_conf(**kwargs):
                 os.path.dirname(os.path.abspath(__file__)),
                 'default.conf'
             ), 'r').read())
-    c = config.read(path)
+    config = configparser.ConfigParser(comment_prefixes=(), allow_no_value=True)
+    config.read(path)
 
     for section in kwargs:
         option = kwargs[section]
-        c.set(section, option['label'], option['value'])
+        # Create section if inexistant
+        if not config.has_section(section):
+            config.add_section(section)
+        config.set(section, str(option[0]), str(option[1]))
+
+    with open(path, 'w') as f:
+        config.write(f)

@@ -115,7 +115,6 @@ class FakeClientResponse:
         return '<html><head><title>fake title of %s</title></head></html>' % self.url
 
 
-
 @asyncio.coroutine
 def fake_request(method, url):
     f = FakeClientResponse()
@@ -126,7 +125,6 @@ def fake_request(method, url):
 @patch('uuid.uuid4', gen_uuid)
 @patch('builtins.open', mock_open(read_data=first_fixture))
 @patch('aiohttp.request', fake_request)
-#@patch('sys.stderr', new_callable=StringIO)
 def test_load_redis():
     load = r.load(['file.json'], update_titles=True)
     assert load is True

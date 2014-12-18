@@ -38,6 +38,18 @@ class MixinDb(object):
         #     return (False)
 
     @asyncio.coroutine
+    def post(self, url):
+        try:
+            response = yield from aiohttp.request(
+                'POST', settings.MINIMIZER,
+                data=json.dumps({"longUrl": url}),
+                headers={'content-type': 'application/json'}
+            )
+            return (yield from response.read())
+        except aiohttp.OsConnectionError:
+            pass
+
+    @asyncio.coroutine
     def wait_with_progress(self, coros):
         for f in tqdm.tqdm(asyncio.as_completed(coros), total=len(coros)):
             yield from f
@@ -54,12 +66,10 @@ class MixinDb(object):
             self.links.get(url)['title'] = title
 
     @asyncio.coroutine
-    def get_minimize(self, url_to_minimize):
+    def get_minimize(self, url):
         with (yield from self.sem):
-            minimize_link = yield from self.get(
-                settings.MINIMIZER + url_to_minimize
-            )
-        self.minimize_links[url_to_minimize] = minimize_link
+            minimize_link = yield from self.post(url)
+        self.minimize_links[url] = json.loads(minimize_link.decode())['id']
 
     def old_links_without_title(self, links):
         ''' Keep only link without title '''
@@ -80,7 +90,7 @@ class MixinDb(object):
             elif links[link]['title'] == '':
                 yield link
 
-    def load(self, json_files=None, update_titles=False):
+    def load(self, json_files=None, update_titles=False, minimizer=False):
         """ Load a string : json format """
 
         self.links = {}
@@ -124,7 +134,7 @@ class MixinDb(object):
             return False
 
         if not update_titles:
-            return self._add_links(self.links)
+            return self._add_links(self.links, minimizer=minimizer)
 
         loop = asyncio.get_event_loop()
         progress = self.wait_with_progress([
@@ -133,8 +143,8 @@ class MixinDb(object):
         ])
         loop.run_until_complete(progress)
 
-        add_links = self._add_links(self.links)
-        return add_links
+        add_links = self._add_links(self.links, minimizer=minimizer)
+        return True
 
     def _minimize(self, fixture):
         ''' Minimize URL if necessite'''
@@ -149,7 +159,7 @@ class MixinDb(object):
         if len(links_to_minimize) == 0:
             return
         if len(links_to_minimize) == 1:
-            self.get(links_to_minimize[0])
+            self.get_minimize(links_to_minimize[0])
             return
         try:
             loop = asyncio.get_event_loop()
@@ -160,6 +170,7 @@ class MixinDb(object):
             loop.run_until_complete(progress)
         except:
             self.get_minimize(links_to_minimize)
+        return links_to_minimize
 
 
 class RedisDb(MixinDb):
@@ -187,17 +198,45 @@ class RedisDb(MixinDb):
         """ Get nb of all stored links """
         return self._db.hlen('links_uuid')
 
-    def _add_links(self, fixture):
+    @property
+    def editmode(self):
+        e_mode = self._db.getbit("editmode", 0)
+        if e_mode == 0:
+            return False
+        return True
+
+    @editmode.setter
+    def editmode(self, value):
+        self._editmode = self._db.setbit("editmode", 0, value)
+
+    def _add_links(self, fixture, minimizer=False):
         " Add links on Database"
         fixture = OrderedDict(sorted(fixture.items(), key=lambda t: t[0]))
 
-        minimize_links = self._minimize(fixture)
+        minimize_links = []
+        if minimizer:
+            minimize_links = self._minimize(fixture)
+
+        # test if duplicates minimize URL
+        if len(self.minimize_links) != len(set(self.minimize_links.values())):
+            # duplicate means that Minimizer has a problem
+            logger.error(
+                yellow(
+                    _(''.join([
+                        'the Minimizer : "%s" has probably a problem' % settings.MINIMIZER,
+                        ' > get the same minimize URL to different URLs.'
+                    ])),
+                    bold=True, bg_color='red'
+                )
+            )
+            print(self.minimize_links)
+            return
 
         for real_link in fixture:
             value = fixture[real_link]
             link = real_link
             if link in self.minimize_links:
-                link = self.minimize_links[real_link]
+                link = self.minimize_links[link]
 
             if self._db.hexists('links_uuid', link):
                 l_uuid = self._db.hget('links_uuid', link)
@@ -226,10 +265,12 @@ class RedisDb(MixinDb):
             properties = {
                 'name': link,
                 'priority': value['priority'],
-                'init date': value['init date'],
+                'init date': value['init date']
             }
-            if 'real_link' in fixture[link]:
-                real_link = fixture[link]['real_link']
+            #print('###', link)
+            # if 'real_link' in fixture[real_link]:
+            #     real_link = fixture[real_link]['real_link']
+
             if link != real_link:
                 properties['real_link'] = real_link
 
@@ -250,6 +291,7 @@ class RedisDb(MixinDb):
                 author = value['author']
             if author:
                 properties['author'] = author
+
             self._db.hmset(l_uuid, properties)
         return True
 

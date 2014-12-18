@@ -155,7 +155,7 @@ def fake_url_open(url):
 @patch('sys.stdout', new_callable=StringIO)
 def test_cmd_addlinks(mock_stdout):
 #def test_cmd_addlinks():
-    tty_i.flush(forced=['forced'])
+    tty_i.flush(forced='forced')
     assert mock_stdout.getvalue() == _('Database entirely flushed.') + '\n'
     mock_stdout.seek(0)
     assert tty_i.addlinks() is True
@@ -481,7 +481,7 @@ def test_cmd_removelinks_dump(mock_stdout):
 
 @patch('sys.stdout', new_callable=StringIO)
 def test_cmd_load_null(mock_stdout):
-    tty_i.flush(forced=['forced'])
+    tty_i.flush(forced='forced')
     assert mock_stdout.getvalue() == _('Database entirely flushed.') + '\n'
 
     mock_stdout.truncate(0)
@@ -535,7 +535,7 @@ first_fixture = """{
 @patch('sys.stdout', new_callable=StringIO)
 def test_cmd_one_load(mock_stdout):
     import sys
-    tty_i.flush(forced=['forced'])
+    tty_i.flush(forced='forced')
     with open('fake.json', 'w') as f:
         f.write(mock_stdout.getvalue() + "\n#######\n")
     # One file
@@ -675,7 +675,7 @@ def multi_mock_open(mock=None, read_data=''):
 @patch('builtins.open', multi_mock_open())
 @patch('sys.stdout', new_callable=StringIO)
 def test_cmd_multi_load(mock_stdout):
-    tty_i.flush(forced=['forced'])
+    tty_i.flush(forced='forced')
     # Several files
     assert tty_i.load(json_files=[
         'file_1.json', 'file_2.json', 'file_3.json'

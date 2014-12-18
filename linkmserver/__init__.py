@@ -6,10 +6,12 @@ import arrow
 
 from flask import (
     Flask, render_template, abort,
-    request, jsonify
+    request, jsonify, g
 )
 from flask.ext.assets import Environment
 # from werkzeug.debug import get_current_traceback
+from werkzeug.contrib.cache import SimpleCache
+cache = SimpleCache()
 
 from linkmanager import settings
 from linkmanager.db import DataBase
@@ -28,7 +30,7 @@ if settings.SERVER:
     assets.url = assets.url[1:]
 
 db = DataBase()
-
+db.editmode = settings.EDITMODE
 
 def read_only(func):
     """ Decorator : get an Unauthorize 403
@@ -60,7 +62,6 @@ def launch_browser(BROWSER=False):
         shell=True
     )
 
-
 @app.route("/")
 def index():
     return render_template(
@@ -68,6 +69,8 @@ def index():
         DEBUG=settings.DEBUG,
         SERVER=settings.SERVER,
         READ_ONLY=settings.READ_ONLY,
+        EDITMODE=settings.EDITMODE,
+        DELETEDIALOG=settings.DELETEDIALOG,
         nb_links=len(db)
     )
     # try:
@@ -85,9 +88,9 @@ def index():
 @app.route("/editmode", methods=['GET', 'POST'])
 def editmode():
     if request.method == 'GET':
-        return jsonify({'editmode': True})
-    editmode = not json.loads(request.form['editmode'])
-    return jsonify({'editmode': editmode})
+        return jsonify({'editmode': db.editmode})
+    db.editmode = not db.editmode
+    return jsonify({'editmode': db.editmode})
 
 
 @read_only
@@ -180,6 +183,7 @@ def run(browser=None):
         launch_browser(BROWSER)
     app.debug = settings.DEBUG
     app.run(host=settings.HTTP_HOST, port=settings.HTTP_PORT)
+    settings.set_user_conf(WEBAPP=['EDITMODE', db.editmode])
 
 if __name__ == '__main__':
     app.debug = settings.DEBUG
