@@ -2,6 +2,26 @@ var nb_links;
 var search_links;
 var search_tags = '';
 var initial_links = [];
+
+/* Position fixed on all dialogs
+describe here : http://stackoverflow.com/questions/2657076/jquery-ui-dialog-fixed-positioning#answer-9242751
+*/
+$.ui.dialog.prototype._oldinit = $.ui.dialog.prototype._init;
+$.ui.dialog.prototype._init = function() {
+    $(this.element).parent().css('position', 'fixed');
+    $(this.element).dialog("option",{
+        resizeStop: function(event,ui) {
+            var position = [(Math.floor(ui.position.left) - $(window).scrollLeft()),
+                            (Math.floor(ui.position.top) - $(window).scrollTop())];
+            $(event.target).parent().css('position', 'fixed');
+            // $(event.target).parent().dialog('option','position',position);
+            // removed parent() according to hai's comment (I didn't test it)
+            $(event.target).dialog('option','position',position);
+            return true;
+        }
+    });
+    this._oldinit();
+};
 initial_links.push({
     'title': '', 'url': '', 'real_url': '',
     'tags': '', 'author': '',
@@ -13,6 +33,7 @@ links_status.push({
     'priority': null, 'description': null
 });
 var new_links = JSON.parse(JSON.stringify(initial_links));
+var dialogs = {};
 
 function add_widget_event(){
     $("#add-widget input, #add-widget textarea").bind('input', function(){
@@ -46,21 +67,6 @@ function add_widget_event(){
 var original_add_widget = $('#add-widget').clone();
 add_widget_event();
 
-// GET Edit mode
-if ($("#editmode").length){
-    if (!$('#editmode').hasClass('server_mode')){
-        $.ajax({
-            url: './editmode',
-            type: "GET",
-            dataType: "json",
-        }).done(function(value){
-            if(value['editmode'] == true){
-                $('#editmode').addClass('active');
-            }
-        });
-    }
-}
-
 // Change Edit Mode
 $("#editmode").click(function(){
     editmode = $(this).hasClass('active');
@@ -91,15 +97,12 @@ $("#editmode").click(function(){
 
 // show an add widget
 function add_widget(){
-    if(!$('#add-widget').hasClass('hidden')){
-        $('#add-widget').addClass('hidden');
-        return;
-    }
-    $('#add-widget').removeClass('hidden');
+    create_root_node('dialog-add-link', 'Add a link ?');
+    dialogs['dialog-add-link'].dialog("open");
 }
 
 // Add a link
-function add_link(button){
+function add_link(){
     new_link = new_links[0];
     $.post(
         "./add",
@@ -130,15 +133,133 @@ function add_link(button){
     }, "json");
 }
 
+// Create if not exist a root Node Dialog
+function create_root_node(id, title) {
+    if (!$('#' + id).length) {
+        var div = $('<div></div>').attr('id', id).attr('title', title);
+        $('body').prepend(div);
+        if (id === "dialog-confirm-deletion") {
+            // Delete dialog
+            dialogs[id] = $('#' + id).dialog({
+                autoOpen: false,
+                height: 50,
+                width: 250,
+                modal: true,
+                resizable: false,
+                open: function(){
+                    $('.ui-widget-overlay').bind('click', function(){
+                        $('#' + id).dialog('close');
+                    })
+                },
+                buttons: {
+                    "Confirm deletion": function() {
+                        link = $(this).data('link');
+                        result_index = $(this).data('result_index');
+                        $.post(
+                            "./delete",
+                            {link: link}
+                        ).done(function(value){
+                            initial_links.splice(result_index, 1);
+                            links_status.splice(result_index, 1);
+                            new_links.splice(result_index, 1);
+                            show_links(_.clone(_.rest(initial_links)));
+                            $('#nb-links strong:first').text(nb_links - 1);
+                        }, "json");
+                        $(this).dialog("close");
+                    },
+                    Cancel: function() {
+                        $(this).dialog("close");
+                    }
+                },
+                show: {effect: 'fade', duration: 400},
+                hide: {effect: 'fade', duration: 400}
+            });
+            return id;
+        }
+        edit = $("#editmode").hasClass('active');
+        add_link = {'link': '', 'title': ''}
+        html = show_link(0, add_link, 0, 0);
+        table = $($(html).children()[1]).children()[0];
+        //$(table).children().children().last().addClass('add-hidden');
+        $('#' + id).append(table);
+        dialogs[id] = $('#' + id).dialog({
+            autoOpen: false,
+            height: 400,
+            width: 550,
+            modal: true,
+            dialogClass: "add-dialog",
+            open: function(){
+                $('.ui-widget-overlay').bind('click', function() {
+                    $('#' + id).dialog('close');
+                })
+            },
+            // buttons: {
+            //     "Confirm addition": function() {
+            //         console.log($(this));
+            //         new_link = new_links[0];
+            //         $.post(
+            //             "./add",
+            //             {
+            //                 link: new_link['url'],
+            //                 title: new_link['title'],
+            //                 newlink: new_link['url'],
+            //                 priority: new_link['priority'],
+            //                 tags: new_link['tags'].join(' '),
+            //                 description: new_link['description']
+            //             }
+            //         );
+            //     },
+            //     "Cancel": function() {
+            //         $('#' + id).dialog('close');
+            //     }
+            // },
+            show: {effect: 'fade', duration: 400},
+            hide: {effect: 'fade', duration: 400}
+        });
+        $("#dialog-add-link input, #dialog-add-link textarea").bind('input', function(){
+            adapt_form(input=this, add=true);
+        });
+
+        $("#dialog-add-link .tagit").tagit({
+            // Options
+            fieldName: "tags",
+            availableTags: suggest_callback,
+            autocomplete: {delay: 0, minLength: 1},
+            showAutocompleteOnFocus: false,
+            removeConfirmation: false,
+            caseSensitive: true,
+            allowDuplicates: false,
+            allowSpaces: false,
+            readOnly: !edit,
+            tagLimit: null,
+            singleField: false,
+            singleFieldDelimiter: ',',
+            singleFieldNode: null,
+            tabIndex: null,
+            placeholderText: null,
+            afterTagAdded: function(evt, ui){
+                if(edit == true) tag_update(evt, ui, remove=false, add=true);
+            },
+            beforeTagRemoved: function(evt, ui){
+                if(edit == true) tag_update(evt, ui, remove=true, add=true);
+            },
+        });
+    }
+    return id;
+}
+
 // Delete a link
 function del(button, link){
     table_tr = $(button).parents().eq(1);
     result_index = parseInt(table_tr[0].id.slice(8));
-    var data = dialog.data();
+    create_root_node('dialog-confirm-deletion', 'Confirm deletion ?');
+    var data = dialogs["dialog-confirm-deletion"].data();
     data.link = link;
     data.result_index = result_index;
-    dialog.dialog("open");
-    return;
+    if(deleteDialog){
+        dialogs["dialog-confirm-deletion"].dialog("open");
+        return;
+    }
     $.post(
         "./delete",
         {link: link}
@@ -210,7 +331,6 @@ function update(button, link){
             readOnly: true
         });
 
-
         table = $($($(
             '#link_nb_' + parseInt(result_index)
         )[0].childNodes[1])[0].firstChild).after(
@@ -255,13 +375,13 @@ function show_link(l, link, len, inc){
     var hidden = '';
     var url = link.url;
     var title = link.title;
-    var tr = '<tr id="link_nb_<%= nb %>"><td><%= nb %></td><td>';
+    var tr = '<tr id="link_nb_<%= nb %>"><td><div><%= nb %></div></td><td>';
     tags = _.map(link.tags, function(value) { return '<li>' + value + '</li>'; }).join('');
     if(edit == true) {
         tr += '<table>';
         // TITLE
         var label = '<label>Title :</label></td><td>';
-        if (title == ''){
+        if (title == '' && inc != 0){
             tr += '<tr class="has-warning"><td>' + label;
             tr += '<small>blank title (can be difficult to identify an URL)</small>';
         }
@@ -321,8 +441,11 @@ function show_link(l, link, len, inc){
         tr += '<tr class="last-tr"><td><label>Description :</label></td><td>';
         tr += '<div class="input-update' + hidden + '"><div class="glyphicon glyphicon-refresh"></div></div>';
         tr += '<textarea class="form-control"><%= description %></textarea></td></tr>';
-        tr += '<tr class="hidden"><td></td><td><input onclick="update(this, \'<%= link %>\');" type="submit" value="update" />';
-        tr += '<input onclick="reset(this);" type="reset" value="reset" /></td></tr>';
+        tr += '<tr class="hidden"><td></td><td>';
+
+        tr += '<input class="add-or-update-button" onclick="update(this, \'<%= link %>\');" type="submit" value="update" />';
+        tr += '<input class="reset-button" onclick="reset(this);" type="reset" value="reset" /></td></tr>';
+
         tr += '</table>';
 
         tr += '</td><td>';
@@ -332,7 +455,7 @@ function show_link(l, link, len, inc){
     else {
         tr += '<a href="<%= link %>"><%= title %></a>';
         if(url != link.real_url){
-            tr += '<ul><li>Real URL : <strong><%= real_url %></strong></li>';
+            tr += '<ul><li>Real URL : <strong><a href="<%= real_url %>"><%= real_url %></a></strong></li>';
         }
         tr += '<li>Priority order : <strong><%= priority %></strong></li>';
         tr += '<li><span>Tags :</span><ul class="readonly tagit">' + tags + '</ul></li>';
@@ -342,9 +465,9 @@ function show_link(l, link, len, inc){
         }
     }
 
-    $( "#create-user" ).button().on( "click", function() {
-      dialog.dialog( "open" );
-    });
+    // $( "#create-user" ).button().on( "click", function() {
+    //   dialog.dialog( "open" );
+    // });
     real_url = link.real_url;
     if (!link.real_url){
         real_url = url;
@@ -445,11 +568,21 @@ function show_links(links){
     });
 }
 
-// Interactively show error(s)/warning(s)/update(s) and reset/submit buttons
+function tooltip(type, value){
+    t = '<div class="tooltip top glyphicon glyphicon-<%= type %>-sign" role="tooltip">';
+    t +=    '<div class="tooltip-arrow"></div>';
+    t +=    '<div class="tooltip-inner">';
+    t +=        '<%= value %>';
+    t +=    '</div>';
+    t += '</div>';
+    return _.template(t, {type: type, value: value});
+}
+
+// Interactively show error(s)/warning(s)/update(s)
 function adapt_form(input, add){
     var tr = $(input).parents().eq(1);
     var table_tr = tr.parents().eq(3);
-    if(add == true){
+    if(add){
         var result_index = 0;
     }
     else{
@@ -478,7 +611,7 @@ function adapt_form(input, add){
         else{
             if(error_help == undefined){
                 input_update.addClass('hidden');
-                input_update.before('<small>URL invalid</small>');
+                input_update.before(tooltip('exclamation', 'URL invalid'));
             }
             tr.addClass('has-error');
             $(tr.parent()[0].lastChild).addClass('hidden');
@@ -503,7 +636,7 @@ function adapt_form(input, add){
             tr.addClass('has-error');
             input_update.addClass('hidden');
             if(error_help == undefined){
-                input_update.before('<small>Invalid number (between 1 and 10)</small>');
+                input_update.before(tooltip('exclamation', 'Invalid number (between 1 and 10)'));
             }
         }
         if($(input).val() != ''){
@@ -528,7 +661,8 @@ function adapt_form(input, add){
         input_update.addClass('hidden');
         if ($(input).val() == ''){
             if(error_help == undefined){
-                input_update.before('<small>blank title (can be difficult to identify an URL)</small>');
+                input_update.before(tooltip('warning', 'can be difficult to identify an URL'));
+                //input_update.before('<small>blank title (can be difficult to identify an URL)</small>');
             }
             tr.addClass('has-warning');
             if(initial_links[result_index]['title'] != ''){
@@ -542,13 +676,22 @@ function adapt_form(input, add){
         }
         new_links[result_index]['title'] = $(input).val();
     }
-    tr = tr.parent().children().filter(':last');
-    show_buttons(tr, result_index);
+    if(add){
+        tr = tr.parent().parent();
+        console.log(tr);
+        show_buttons(tr, result_index);
+    }
+    else{
+        tr = tr.parent().children().filter(':last');
+        show_buttons(tr, result_index);
+    }
 }
 
 function show_buttons(tr, result_index){
-    //Show reset and validate buttons
-    var submit_button = tr.children().filter(':last').children().filter(':first');
+    // Interactively show reset and validate buttons
+    //var submit_button = tr.children().filter(':last').children().filter(':first');
+    var submit_button = tr.children().filter('.add-or-update-button');
+    console.log(submit_button);
     var link_values = _.values(links_status[result_index]);
     tr.addClass('hidden');
     submit_button.addClass('hidden');
@@ -604,7 +747,7 @@ function tag_update(evt, ui, remove, add){
     links_status[result_index]['tags'] = null;
     if (tags.toString() == ''){
         $(ul_tagit).addClass('has-error');
-        tag_up.before('<small>requires at least one tag</small>');
+        tag_up.before(tooltip('exclamation', 'requires at least one tag'));
         tag_up.addClass('hidden');
         links_status[result_index]['tags'] = false;
     }
@@ -634,6 +777,7 @@ function tag_update(evt, ui, remove, add){
 function get_links(){
     var link = $('#searchform').attr('action');
     search_tags = $('.ui-autocomplete-input').val();
+    $('#responses').addClass('hidden');
     $.ajax({
         url: link,
         data: search_tags,
@@ -643,6 +787,7 @@ function get_links(){
         //     },
         // }
     }).done(function(links) {
+        $('#responses').removeClass('hidden');
         $('#nb-results').removeClass('hidden');
         add_link_status = _.clone(links_status[0]);
         links_status = [];
@@ -757,37 +902,4 @@ $("#myTags").tagit({
 
 $(window).ready(function(){
     nb_links = parseInt($('#nb-links strong:first').text());
-});
-
-// Delete dialog
-dialog = $("#dialog-confirm").dialog({
-    autoOpen: false,
-    height: 50,
-    width: 250,
-    modal: true,
-    open: function(){
-        $('.ui-widget-overlay').bind('click', function(){
-            $('#dialog-confirm').dialog('close');
-        })
-    },
-    buttons: {
-        "Confirm deletion": function() {
-            link = $(this).data('link');
-            result_index = $(this).data('result_index');
-            $.post(
-                "./delete",
-                {link: link}
-            ).done(function(value){
-                initial_links.splice(result_index, 1);
-                links_status.splice(result_index, 1);
-                new_links.splice(result_index, 1);
-                show_links(_.clone(_.rest(initial_links)));
-                $('#nb-links strong:first').text(nb_links - 1);
-            }, "json");
-            $(this).dialog("close");
-        },
-        Cancel: function() {
-            $(this).dialog("close");
-        }
-    }
 });

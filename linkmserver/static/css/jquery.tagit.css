@@ -9,20 +9,20 @@ ul.tagit li {
     float: left;
     margin: 2px 5px 2px 0;
 }
-ul.tagit li.tagit-choice {    
+ul.tagit li.tagit-choice {
     position: relative;
     line-height: inherit;
 }
 input.tagit-hidden-field {
     display: none;
 }
-ul.tagit li.tagit-choice-read-only { 
-    padding: .2em .5em .2em .5em; 
-} 
+ul.tagit li.tagit-choice-read-only {
+    padding: .2em .5em .2em .5em;
+}
 
-ul.tagit li.tagit-choice-editable { 
-    padding: .2em 18px .2em .5em; 
-} 
+ul.tagit li.tagit-choice-editable {
+    padding: .2em 18px .2em .5em;
+}
 
 ul.tagit li.tagit-new {
     padding: .25em 4px .25em 0;
@@ -39,8 +39,19 @@ ul.tagit li.tagit-choice .tagit-close {
     top: 50%;
     margin-top: -8px;
     line-height: 17px;
+    opacity: 0;
+    -webkit-transition: all .2s ease-in-out;
+    -moz-transition: all .2s ease-in-out;
+    -ms-transition: all .2s ease-in-out;
+    -o-transition: all .2s ease-in-out;
+    transition: all .2s ease-in-out;
 }
+ul.tagit li.tagit-choice:hover {
 
+}
+ul.tagit li.tagit-choice:hover .tagit-close {
+    opacity: 1;
+}
 /* used for some custom themes that don't need image icons */
 ul.tagit li.tagit-choice .tagit-close .text-icon {
     display: none;
