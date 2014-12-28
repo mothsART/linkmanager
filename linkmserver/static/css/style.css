@@ -203,9 +203,11 @@ sup {
 }
 #legend {
     color: #d43f3a;
+    background: white;
     position: fixed;
-    bottom: 10px;
-    right: 20px;
+    bottom: 0px;
+    right: 0px;
+    padding: 10px;
 }
 #dialog-add-link .edit-table > tbody > tr > td:nth-child(1),
 #dialog-add-link .edit-table > tbody > tr > td:nth-child(1) {
@@ -239,12 +241,15 @@ sup {
 .col-md-4 {
     padding-left: 0;
 }
-.glyphicon-plus {
+.glyphicon-plus,
+.glyphicon-plus:focus {
     top: 0;
     height: 30px;
+    width: 35px;
     background-color: #4cae4c;
     color: white;
     border: none;
+    border-left: solid 5px white;
     -webkit-border-radius: 0;
     -moz-border-radius: 0;
     border-radius: 0;
@@ -658,8 +663,4 @@ ul.tagit li.tagit-choice .tagit-close:hover {
     line-height: 30px;
     vertical-align: middle;
     font-size: 14px;
-}
-.glyphicon-plus {
-    width: 35px;
-    border-left: solid 5px white;
 }
