@@ -416,7 +416,8 @@ function show_link(l, link, len, inc){
         }
         tr += '<tr><td><label>Priority order :<sup> *</sup></label></td>';
         tr += '<td><div class="input-update' + hidden + '"><div class="glyphicon glyphicon-refresh"></div></div>';
-        tr += '<input class="form-control" type="number" min="1" max="10" value="<%= priority %>"></input></td></tr>';
+        tr += '<input type="number" data-show-clear="false" data-show-caption="true" value="<%= priority %>" class="rating" min="0" max="10" data-step="1" data-stars="10" data-size="xs" /></td></tr>';
+        //tr += '<input class="form-control" type="number" min="1" max="10" value="<%= priority %>"></input></td></tr>';
 
         // TAGS
         hidden = ' hidden';
@@ -479,7 +480,7 @@ function show_link(l, link, len, inc){
             priority: link.priority,
             description: link.description
         }
-    )
+    );
 }
 // Show Links : with edit mode or not
 function show_links(links){
@@ -820,6 +821,7 @@ function get_links(){
         // Deep copy
         new_links = JSON.parse(JSON.stringify(initial_links));
         show_links(_.clone(_.rest(initial_links)));
+        $(".rating").rating({});
     });
     return false;
 }

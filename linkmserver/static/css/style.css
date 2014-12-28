@@ -81,9 +81,9 @@ input[type=search]:focus {
     background-color: #e6e6e6;
     color: white;
     border: none;
-    height: 32px;
-    width: 26px;
-    padding-top: 8px;
+    height: 30px;
+    width: 30px;
+    padding-top: 2px;
     -webkit-transition: all .2s ease-in-out;
     -moz-transition: all .2s ease-in-out;
     -ms-transition: all .2s ease-in-out;
@@ -118,9 +118,13 @@ input[type=search]:focus {
 }
 /* SearchBar */
 #search-button {
+    width: 51px;
+}
+#search-button > input {
     padding: 0;
     width: 50px;
     height: 30px;
+    border-left: none;
     -webkit-border-radius: 0;
     -moz-border-radius: 0;
     border-radius: 0;
@@ -236,7 +240,8 @@ sup {
     padding-left: 0;
 }
 .glyphicon-plus {
-    height: 28px;
+    top: 0;
+    height: 30px;
     background-color: #4cae4c;
     color: white;
     border: none;
@@ -250,7 +255,7 @@ sup {
     transition: all .4s ease-in-out;
 }
 .glyphicon-plus:before {
-    margin-left: 2px;
+    margin-left: -3px;
 }
 .glyphicon-plus.hidden,
 #responses.hidden {
@@ -259,6 +264,8 @@ sup {
     opacity: 0;
 }
 .glyphicon-plus:hover {
+    color: white;
+    border-color: white;
     background-color: rgba(0, 128, 0, .4);
 }
 /* Tooltip */
@@ -646,8 +653,13 @@ ul.tagit li.tagit-choice .tagit-close:hover {
     color: #d43f3a;
 }
 #nb-results {
-    padding-right: 10px;
-    height: 34px;
-    line-height: 34px;
-    vertical-align: top;
+    padding: 0 5px;
+    height: 30px;
+    line-height: 30px;
+    vertical-align: middle;
+    font-size: 14px;
+}
+.glyphicon-plus {
+    width: 35px;
+    border-left: solid 5px white;
 }
