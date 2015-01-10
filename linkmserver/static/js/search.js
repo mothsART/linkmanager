@@ -490,11 +490,11 @@ function show_links(links){
     $("#search-list").remove();
     var len = _.size(links);
     var inc = 1;
-    _.each(_.range(len), function(l) {
-        link = _.min(links, function(l){
+    _.each(_.range(len).reverse(), function(l) {
+        link = _.max(links, function(l){
             return parseInt(l.priority);
         });
-        html = show_link(l, link, len, inc);
+        html = show_link(len - l - 1, link, len, inc);
         items.push(html);
         delete links[inc - 1];
         inc += 1;
@@ -692,7 +692,6 @@ function show_buttons(tr, result_index){
     // Interactively show reset and validate buttons
     //var submit_button = tr.children().filter(':last').children().filter(':first');
     var submit_button = tr.children().filter('.add-or-update-button');
-    console.log(submit_button);
     var link_values = _.values(links_status[result_index]);
     tr.addClass('hidden');
     submit_button.addClass('hidden');

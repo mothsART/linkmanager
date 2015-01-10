@@ -75,6 +75,7 @@ input[type=search]:focus {
     box-shadow: none;
     border: solid 1px #ccc;
     height: 30px;
+    padding: 5px;
 }
 .nav button {
     top: 0;
@@ -83,7 +84,7 @@ input[type=search]:focus {
     border: none;
     height: 30px;
     width: 30px;
-    padding-top: 2px;
+    padding-top: 5px;
     -webkit-transition: all .2s ease-in-out;
     -moz-transition: all .2s ease-in-out;
     -ms-transition: all .2s ease-in-out;
@@ -187,6 +188,104 @@ ul.ui-corner-all {
 |  Responses  |
  =============
 */
+.input-group-addon {
+    background-color: transparent;
+}
+#responses .form-group > .input-group {
+    border-bottom: none;
+    margin-bottom: 10px;
+}
+#responses .input-group > div {
+    background-color: #f9f9f9;
+}
+#responses .input-group > .input-group-addon {
+    padding-top: 5px;
+}
+#responses .input-group .input-group-addon {
+    border-radius: 0;
+}
+#responses .input-group .form-control {
+    border: none;
+    padding: 0;
+}
+#responses .input-group > .form-control {
+    height: auto;
+    border-radius: 0;
+    background: #EBEBEB;
+    padding-right: 5px;
+    padding-bottom: 5px;
+}
+#responses .input-group .form-control .form-control {
+    padding: 5px 5px 5px 0;
+}
+/*#responses .input-group .input-group:first-child .form-control {
+    padding-top: 0;
+}*/
+#responses .input-group .input-group:last-child .form-control {
+    padding-bottom: 0;
+}
+#responses .form-group > .input-group > .input-group-addon {
+    border: none;
+    border-radius: 10px 0 0 10px;
+    background: #EBEBEB;
+    vertical-align: top;
+}
+#responses .form-group > .input-group > .input-group-addon strong {
+    height: 20px;
+    line-height: 20px;
+    width: 20px;
+    background: white;
+    display: block;
+    vertical-align: middle;
+    border-radius: 20px;
+    color: #428bca;
+}
+#responses .input-group .input-group {
+    border: none;
+}
+#responses .input-group .input-group:first-child {
+    border: none;
+}
+#responses .input-group .form-control .input-group:first-child .input-group-addon {
+    padding-top: 0;
+}
+#responses .input-group  .input-group .input-group-addon.description-label {
+    background: #EBEBEB;
+}
+#responses .input-group .input-group .input-group-addon {
+    border: none;
+    text-align: left;
+    min-width: 140px;
+    padding-left: 5px;
+    padding-bottom: 0;
+    vertical-align: top;
+    background: #ddd;
+    color: white;
+}
+#responses .input-group .input-group .input-group-addon.description-label > div {
+    width: 100%;
+    background: #ddd;
+    height: 22px;
+    margin-top: -5px;
+    margin-left: -5px;
+    margin-right: -10px;
+    position: absolute;
+    padding-left: 5px;
+    padding-top: 5px;
+}
+#responses .input-group .input-group .form-control {
+    background: #ddd;
+    padding: 0;
+}
+#responses .form-group > .input-group .form-control > .input-group:nth-child(odd) > label,
+#responses .form-group > .input-group .form-control > .input-group:nth-child(odd) > div {
+    background: #EBEBEB;
+    padding: 5px 0;
+    color: #428bca;
+}
+#responses .input-group .input-group .input-group-addon strong:after {
+    content: " : ";
+}
 td:nth-child(1){
     width: 30px;
 }
@@ -223,9 +322,21 @@ sup {
 #responses .edit-table > tbody > tr > td:nth-child(3) {
     padding-top: 16px;
 }
-.glyphicon-minus {
-    top: 9px;
-    height: 28px;
+.delete-link {
+    position: absolute;
+    z-index: 1000;
+    top: -13px;
+    right: 2px;
+    border: solid 2px #ddd;
+    border-radius: 30px;
+    background: white;
+    padding: 3px;
+}
+.glyphicon-remove {
+    top: 0;
+    border-radius: 30px;
+    width: 24px;
+    height: 24px;
     background: #d43f3a;
     color: white;
     border: none;
@@ -235,7 +346,7 @@ sup {
     -o-transition: all .4s ease-in-out;
     transition: all .4s ease-in-out;
 }
-.glyphicon-minus:hover {
+.glyphicon-remove:hover {
     background-color: rgba(255, 0, 0, .4);
 }
 .col-md-4 {
@@ -305,7 +416,7 @@ sup {
 }
 #dialog-add-link,
 #responses {
-    margin-top: 10px;
+    margin-top: 20px;
 }
 #responses {
     -webkit-transition: all .4s ease-in-out;
@@ -370,12 +481,6 @@ sup {
 #dialog-add-link table tr:first-child td:last-child {
     padding-top: 3px;
 }
-#responses tr .glyphicon-minus {
-    opacity: 0;
-}
-#responses tr:hover .glyphicon-minus {
-    opacity: 1;
-}
 #dialog-add-link label,
 #responses label {
     margin: 0;
@@ -387,20 +492,18 @@ sup {
 #dialog-add-link textarea,
 #responses input,
 #responses textarea {
-    margin: 2%;
-    margin-top: 10px;
-    margin-bottom: 10px;
     padding: 3px;
     padding-right: 37px;
-    min-width: 98%;
-    width: 98%;
-    max-width: 98%;
+    min-width: 100%;
+    width: 100%;
+    max-width: 100%;
     height: 22px;
     line-height: 22px;
     -webkit-border-radius: 0;
     -moz-border-radius: 0;
     border-radius: 0;
-    border: solid 1px rgb(169, 169, 169);
+    border: none;
+    color: #428bca;
 }
 #dialog-add-link .form-control,
 #dialog-add-link .form-control:hover,
@@ -428,15 +531,16 @@ sup {
 #responses textarea {
     line-height: 16px;
     height: 56px; /* nb_row: 3 => 3 * 16px + 3 * 2 (padding) + 2 * 4 (border) = 56px */
+    vertical-align: top;
 }
 #dialog-add-link .tagit,
 #responses .tagit {
     background: none;
     background-color: white;
-    border: solid 1px rgb(169, 169, 169);
-    padding: 2px 0;
-    margin: 2%;
-    margin-right: 0;
+    border: none;
+    min-height: 22px;
+    margin: 0;
+    padding: 1px;
 }
 #dialog-add-link .tagit.has-error,
 #responses .tagit.has-error {
@@ -444,12 +548,14 @@ sup {
 }
 #dialog-add-link ul.tagit li.tagit-choice,
 #responses ul.tagit li.tagit-choice {
-    margin: 1px 2px;
+    position: static;
+    margin: 1px;
     background: rgb(28, 148, 196);
     color: white;
     padding: 0 4px;
     line-height: 18px;
-    height: 22px;
+    height: 18px;
+    border: 0;
 }
 #dialog-add-link ul.tagit li.tagit-choice-editable,
 #responses ul.tagit li.tagit-choice-editable {
@@ -474,7 +580,9 @@ sup {
 #responses .tagit input {
     margin: 0;
     background: none;
-    height: 23px;
+    height: 20px;
+    line-height: 20px;
+    padding: 0;
     border: none;
     position: relative;
     display: inline-block;
@@ -507,18 +615,18 @@ sup {
 #dialog-add-link input[type="submit"],
 #responses input[type="reset"],
 #responses input[type="submit"] {
-    margin: 0;
+    margin: 5px 0 0 0;
     color: white;
     background-color: #4cae4c;
     border: none;
-    width: 20%;
+    width: inherit;
     display: inline-block;
     position: relative;
     float: right;
-    max-width: 20%;
-    min-width: 20%;
+    max-width: inherit;
+    min-width: inherit;
     line-height: 20px;
-    margin-right: 0;
+    padding: 0 10px;
     -webkit-transition: all .4s ease-in-out;
     -moz-transition: all .4s ease-in-out;
     -ms-transition: all .4s ease-in-out;
@@ -535,7 +643,7 @@ sup {
 }
 #dialog-add-link input[type="submit"],
 #responses input[type="submit"] {
-    margin-left: 2%;
+    margin-left: 5px;
 }
 #dialog-add-link input[type="submit"]:hover,
 #responses input[type="submit"]:hover {

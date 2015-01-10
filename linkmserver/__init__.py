@@ -151,7 +151,6 @@ def search():
         links = db.sorted_links(*tags)
     except:
         links = db.sorted_links()
-
     results = {}
     for l in links:
         properties = db.get_link_properties(l)

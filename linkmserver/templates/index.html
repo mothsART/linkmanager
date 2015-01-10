@@ -88,7 +88,104 @@
                         </span>
                     </div>
                 </form>
-                <article class="col-md-10 table-responsive hidden" id="responses"></article>
+                <article class="col-md-10 table-responsive hidden" id="responses">
+                    <div class="form-group">
+                        <div class="delete-link">
+                            <button title="delete" class="glyphicon glyphicon-remove"></button>
+                        </div>
+                        <div class="input-group">
+                            <div class="input-group-addon"><strong>1</strong></div>
+                            <div class="form-control">
+                                <div class="input-group">
+                                    <label class="input-group-addon" id="basic-addon1"><strong>Title</strong></label>
+                                    <div class="form-control">
+                                        <input type="text">
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-group-addon" id="basic-addon1"><strong>Link</strong></label>
+                                    <div class="form-control">
+                                        <input type="text">
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-group-addon"><strong>Link</strong><sup>*</sup></label>
+                                    <div class="form-control">
+                                        <input type="text">
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-group-addon"><strong>Priority order</strong><sup> *</sup></label>
+                                    <div class="form-control">
+                                        <input type="number" data-show-clear="false" data-show-caption="true" value="<%= priority %>" class="rating" min="0" max="10" data-step="1" data-stars="10" data-size="xs" />
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-group-addon"><strong>Tags</strong><sup> *</sup></label>
+                                    <div class="form-control">
+                                        <ul class="tagit"></ul>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-group-addon description-label">
+                                        <div>
+                                            <strong>Description</strong>
+                                        </div>
+                                    </label>
+                                    <div class="form-control">
+                                        <textarea><%= description %></textarea>
+                                    </div>
+                                </div>
+                                <div>
+                                    <input class="add-or-update-button" onclick="update(this, 'http://goo.gl/Dfysqk');" type="submit" value="update">
+                                    <input class="reset-button" onclick="reset(this);" type="reset" value="reset">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <div class="input-group-addon">1</div>
+                            <div class="form-control">
+                                <div class="input-group">
+                                    <label class="input-group-addon" id="basic-addon1"><strong>Title</strong></label>
+                                    <div class="form-control">
+                                        <input type="text" placeholder="Username" aria-describedby="basic-addon1">
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-group-addon" id="basic-addon1"><strong>Link</strong></label>
+                                    <div class="form-control">
+                                        <input type="text" placeholder="Username" aria-describedby="basic-addon1">
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-group-addon"><strong>Link</strong><sup>*</sup></label>
+                                    <div class="form-control">
+                                        <input type="text" placeholder="Username" aria-describedby="basic-addon1">
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-group-addon"><strong>Priority order</strong><sup> *</sup></label>
+                                    <div class="form-control">
+                                        <input type="number" data-show-clear="false" data-show-caption="true" value="<%= priority %>" class="rating" min="0" max="10" data-step="1" data-stars="10" data-size="xs" />
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-group-addon"><strong>Tags</strong><sup> *</sup></label>
+                                    <div class="form-control">
+                                        <ul class="tagit"></ul>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-group-addon"><strong>Description</strong></label>
+                                    <div class="form-control">
+                                        <textarea><%= description %></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
             </section>
         </div>
         <div class="hidden" id="legend">* This fields are required.</div>
